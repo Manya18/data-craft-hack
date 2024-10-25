@@ -308,8 +308,8 @@ const InteractiveTable: React.FC = () => {
             const jsonData = JSON.parse(text);
 
             if (Array.isArray(jsonData)) {
-                setRows(jsonData.map((item, index) => ({ id: index + 1, ...item })));
-
+                const rows = jsonData.map((item, index) => ({ id: index + 1, ...item }))
+                setRows(rows);
                 // Извлекаем названия столбцов из первого объекта
                 const newColumns = Object.keys(jsonData[0] || {});
                 setColumns(newColumns);
@@ -341,6 +341,7 @@ const InteractiveTable: React.FC = () => {
                     const columns = Object.keys(data[0]).map(key => key.toLowerCase());
                     setColumns(columns);
                     setRows(formattedData); // Теперь типы совпадают
+                    send(formattedData)
                 }
             },
             error: (error: any) => {
@@ -348,6 +349,19 @@ const InteractiveTable: React.FC = () => {
             }
         });
     };
+
+    const send = (rows: any) => {
+        console.log(rows)
+        if(rows){
+            fetch('http://localhost:8080/api/parse', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(rows),
+            })        
+        }
+    }
 
     console.log(rows)
 
