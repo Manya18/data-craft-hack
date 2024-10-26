@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom"; // Импортируйте useNavigate
+import { useNavigate } from "react-router-dom";
 import styles from "./startPage.module.css";
 
 function Registration() {

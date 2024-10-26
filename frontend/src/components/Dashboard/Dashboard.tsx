@@ -117,9 +117,9 @@ const Dashboard: React.FC = () => {
     const handleEditClick = (chartId: any) => {
         const chartToEdit = charts.find((chart) => chart.id === chartId);
         if (chartToEdit) {
-            setTableName('Ваши_таблицы'); 
-            setColumnName(chartToEdit.data.labels[0]); 
-            setCountElements(false); 
+            setTableName('Таблицы');
+            setColumnName(chartToEdit.data.labels[0]);
+            setCountElements(false);
             setCurrentChartId(chartId);
             setIsEditModalOpen(true);
         }
@@ -149,10 +149,10 @@ const Dashboard: React.FC = () => {
                         ...chart,
                         data: {
                             ...chart.data,
-                            labels: [columnName], // Здесь добавьте логику для обновления данных на основе выбранного столбца
+                            labels: [columnName],
                             datasets: [{
                                 ...chart.data.datasets[0],
-                                data: countElements ? [/* Логика для подсчета элементов */] : chart.data.datasets[0].data,
+                                data: countElements ? [] : chart.data.datasets[0].data,
                             }],
                         },
                     }
@@ -232,7 +232,7 @@ const Dashboard: React.FC = () => {
                     }}
                     onMouseLeave={() => setPasteMenu(null)}
                 >
-                    <button onClick={handlePaste}>Вставить</button>
+                    <button className={styles.menuButton} onClick={handlePaste}>Вставить</button>
                 </div>
             )}
 
@@ -305,7 +305,6 @@ const Dashboard: React.FC = () => {
                     <select value={tableName} onChange={(e) => setTableName(e.target.value)}>
                         <option value="">Выберите таблицу</option>
                         <option value="table1">Таблица 1</option>
-                        <option value="table2">Таблица 2</option>
                     </select>
 
                     <label>Имя столбца:</label>

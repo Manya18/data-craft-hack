@@ -3,8 +3,8 @@ class PersonController {
         this.db = db;
     }
 
-    async getTables (req, res) {
-        const { user_id } = req.body;
+    async getTables(req, res) {
+        const { user_id } = req.query;
         const client = await this.db.connect();
         try {
             const tables = await client.query(
@@ -13,7 +13,7 @@ class PersonController {
             );
             res.status(201).json(tables.rows);
         } catch (error) {
-            console.error( error);
+            console.error(error);
         } finally {
             client.release();
         }

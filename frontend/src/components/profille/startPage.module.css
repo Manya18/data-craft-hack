@@ -97,20 +97,9 @@ input:focus {
 }
 
 .authoButton {
-    font-family: var(--secondaryFont);
-    color: var(--text-primary);
+    color: #000;
     font-size: 15px;
-    background-color: var(--background);
-    border: 0px;
-    padding: 10px;
-    border-radius: 10px;
-}
-
-.authoButton:hover {
-    font-family: var(--secondaryFont);
-    color: var(--text-primary);
-    font-size: 15px;
-    background-color: var(--accent);
+    background-color: white;
     border: 0px;
     padding: 10px;
     border-radius: 10px;

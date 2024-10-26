@@ -1,6 +1,5 @@
 import React from "react";
 import styles from "./startPage.module.css";
-import { t } from "i18next";
 
 function Logout() {
     const logOut = async () => {
@@ -23,7 +22,7 @@ function Logout() {
     }
 
     return (
-        <button className={styles.authoButton} onClick={logOut}>{t(`profile.getout`)}</button>
+        <button className={styles.authoButton} onClick={logOut}>Выйти</button>
     );
 }
 
