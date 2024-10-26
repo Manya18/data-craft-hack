@@ -4,7 +4,10 @@
 }
 
 .tableControls {
+    margin-top: 10px;
     margin-bottom: 10px;
+    display: flex;
+    gap: 20px;
 }
 
 .tableControls input {
@@ -82,4 +85,14 @@
 
 .contextMenu button:hover {
     background: var(--opacity-accent);
+}
+
+button {
+    background-color: var(--accent);
+    color: var(--text-accent);
+    border-radius: 5px;
+    padding: 8px 25px;
+    font-size: 14px;
+    font-weight: 600;
+    width: fit-content;
 }

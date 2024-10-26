@@ -323,25 +323,26 @@ const InteractiveTable: React.FC = () => {
 
         const file = event.target.files?.[0];
         if (!file) return;
+        const formData = new FormData();
+        formData.append('file', file);
 
         Papa.parse(file, {
+            delimiter: ";",
             header: true,
             skipEmptyLines: true,
             complete: (results: any) => {
                 const data = results.data as Record<string, string>[];
 
                 if (data.length > 0) {
-                    // Преобразуем данные из CSV и добавляем числовые идентификаторы
                     const formattedData: Row[] = data.map((item, index) => ({
-                        id: index + 1, // Добавляем числовой id
+                        id: index + 1,
                         ...item,
                     }));
 
-                    // Устанавливаем столбцы и строки
                     const columns = Object.keys(data[0]).map(key => key.toLowerCase());
                     setColumns(columns);
-                    setRows(formattedData); // Теперь типы совпадают
-                    send(formattedData)
+                    setRows(formattedData);
+                    send(formData)
                 }
             },
             error: (error: any) => {
@@ -350,31 +351,26 @@ const InteractiveTable: React.FC = () => {
         });
     };
 
-    const send = (rows: any) => {
-        console.log(rows)
-        if(rows){
-            fetch('http://localhost:8080/api/parse', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(rows),
-            })        
-        }
-    }
+    const send = (formData: any) => {
+        fetch('http://localhost:8080/api/upload', {
+            method: 'POST',
+            body: formData,
+        })
+            .then(response => response.text())
+            .then(data => console.log(data));
+    };
 
-    console.log(rows)
 
     return (
         <div className={styles.interactiveTable} onClick={(e) => handleContextMenuClose(e)}>
             <div className={styles.tableControls}>
-                <input
+                {/* <input
                     type="text"
                     placeholder={t('table.search') + '...'}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <button onClick={openFilterModal}>{t(`table.filter`)}</button>
+                /> */}
+                <button onClick={openFilterModal}>Фильтрация</button>
                 <button onClick={openHideColumnsModal}>Скрыть столбцы</button>
                 <button onClick={openSortModal}>Сортировка</button>
                 <button onClick={openAddRowModal}>Добавить строку</button>
