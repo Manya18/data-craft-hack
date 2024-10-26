@@ -342,7 +342,7 @@ const InteractiveTable: React.FC = () => {
                     const columns = Object.keys(data[0]).map(key => key.toLowerCase());
                     setColumns(columns);
                     setRows(formattedData);
-                    // send(formData)
+                    send(formData)
                 }
             },
             error: (error: any) => {
@@ -351,14 +351,14 @@ const InteractiveTable: React.FC = () => {
         });
     };
 
-    // const send = (formData: any) => {
-    //     fetch('http://localhost:8080/api/upload', {
-    //         method: 'POST',
-    //         body: formData,
-    //     })
-    //         .then(response => response.text())
-    //         .then(data => console.log(data));
-    // };
+    const send = (formData: any) => {
+        fetch('http://localhost:8080/api/upload', {
+            method: 'POST',
+            body: formData,
+        })
+            .then(response => response.text())
+            .then(data => console.log(data));
+    };
 
 
     return (

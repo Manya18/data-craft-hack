@@ -5,6 +5,11 @@ const path = require('path');
 
 const upload = multer({ dest: 'uploads/' });
 
+function isNumber(value) {
+    const num = parseFloat(value);
+    return !isNaN(num) && isFinite(num);
+}
+
 const processFile = async (req, res, pool) => {
     const results = [];
     let tableName = '';
@@ -12,30 +17,25 @@ const processFile = async (req, res, pool) => {
 
     try {
         fs.createReadStream(req.file.path)
-            .pipe(csv())
+            .pipe(csv({ separator: ';' }))
             .on('data', (data) => {
-                if (results.length === 0) {
-                    // Первая строка - название таблицы
-                    tableName = data[Object.keys(data)[0]]; // Предполагаем, что название таблицы в первом столбце
-                } else if (results.length === 1) {
-                    // Вторая строка - названия столбцов
-                    columns = Object.keys(data);
-                } else {
-                    // Остальные строки - данные
-                    results.push(data);
-                }
+                const modifiedData = Object.entries(data).reduce((acc, [key, value]) => {
+                    const newKey = key.split(" ").join("_").replace(/[,()]/g, ''); 
+                    acc[newKey] = value;
+                    return acc;
+                }, {});
+                results.push(modifiedData);
             })
             .on('end', async () => {
                 try {
-                    console.log(tableName);
-                    console.log(results);
-                    // Создание таблицы на основе заголовков
-                    const keysWithTypes = columns.map(key => `${key} TEXT`); // Замените TEXT на нужный тип
-                    await pool.query(`CREATE TABLE IF NOT EXISTS ${tableName} (${keysWithTypes.join(', ')})`);
+                    const keys = Object.keys(results[0]);
+                    const keysWithTypes = keys.map(key => `${key} TEXT`);
+                    console.log(keysWithTypes)
 
-                    // Вставка данных в таблицу
+                    await pool.query(`CREATE TABLE IF NOT EXISTS your_table_2 (${keysWithTypes.join(', ')})`);
+
                     for (const row of results) {
-                        await pool.query(`INSERT INTO ${tableName} (${columns.join(', ')}) VALUES(${columns.map(key => `'${row[key]}'`).join(', ')})`);
+                        await pool.query(`INSERT INTO your_table_2(${keys.join(', ')}) VALUES(${keys.map(key => `'${row[key]==='' ? null : row[key]}'`).join(', ')})`);
                     }
                     res.send('Data inserted into database');
                 } catch (err) {
@@ -44,7 +44,7 @@ const processFile = async (req, res, pool) => {
                     res.status(500).send('Error inserting data into database');
                 }
             });
-    } catch (err) {
+    }  catch (err) {
         console.error(err);
         Error.captureStackTrace(err);
         res.status(500).send('Error reading file');

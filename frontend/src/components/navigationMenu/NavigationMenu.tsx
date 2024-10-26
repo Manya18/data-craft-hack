@@ -4,7 +4,6 @@ import styles from "./navigationMenu.module.css";
 const NavigationMenu = () => {
     const isTabActive = (tabName: string) => {
         const linkParts = window.location.pathname.split('/');
-        console.log(linkParts)
         return linkParts.includes(tabName)
     }
 
