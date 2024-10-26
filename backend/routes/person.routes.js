@@ -6,7 +6,7 @@ module.exports = (personController) => {
         personController.registratePerson(req, res);
     });
 
-    router.get('/authorize', (req, res) => {
+    router.post('/authorize', (req, res) => {
         personController.authorizePerson(req, res);
     });
 
