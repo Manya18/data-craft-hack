@@ -5,7 +5,9 @@ const cookieParser = require('cookie-parser');
 const Pool = require('pg').Pool;
 const routes = require('./routes/routes');
 const personRoutes = require('./routes/person.routes');
+const tableRoutes = require('./routes/table.routes');
 const PersonController = require('./controller/person.controller');
+const TableController = require('./controller/table.controller');
 
 const app = express();
 
@@ -22,8 +24,11 @@ const pool = new Pool({
 });
 
 const personController = new PersonController(pool);
+const tableController = new TableController(pool);
+
 app.use('/api', routes(pool));
 app.use('/api', personRoutes(personController));
+app.use('/api', tableRoutes(tableController));
 
 app.listen(8080, () => {
     console.log('Server running on port 8080');
