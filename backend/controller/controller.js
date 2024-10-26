@@ -48,7 +48,6 @@ const processFile = async (req, res, pool) => {
                         await client.query(`INSERT INTO ${tableName} (${keys.join(', ')}) VALUES(${keys.map(key => `'${row[key]}'`).join(', ')})`);
                     }
 
-                    // Записываем информацию о созданной таблице
                     await client.query(`INSERT INTO Tables_list (user_id, table_name) VALUES ($1, $2)`, [userId, tableName]);
 
                     await client.query('COMMIT');
