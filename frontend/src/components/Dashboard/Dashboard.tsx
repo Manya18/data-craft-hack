@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { Chart as ChartJS, registerables } from 'chart.js';
 import { Bar, Doughnut, Pie } from 'react-chartjs-2';
 import GridLayout from 'react-grid-layout';
@@ -9,6 +10,8 @@ import Modal from '@mui/material/Modal';
 import styles from './dashboard.module.css';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 ChartJS.register(...registerables);
 
@@ -28,11 +31,19 @@ interface Chart {
 const Dashboard: React.FC = () => {
     const [charts, setCharts] = useState<Chart[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [contextMenu, setContextMenu] = useState<{ x: number; y: number; type: 'copy' | 'paste' | null; chartId?: string } | null>(null);
-    const [clipboard, setClipboard] = useState<Chart | null>(null);
+    const [isModalContext, setIsModalContext] = useState(false);
 
+    const [contextMenu, setContextMenu] = useState<{ x: number; y: number; chartId: string } | null>(null);
+    const [contextMenuDaschboard, setContextMenuDaschboard] = useState<{ x: number; y: number; chartId: string } | null>(null);
+    const [clipboard, setClipboard] = useState<Chart | null>(null);
+    const [pasteMenu, setPasteMenu] = useState<{ x: number; y: number } | null>(null);
     const chartRefs = useRef<{ [key: string]: HTMLCanvasElement | null }>({});
-    const [selectedChartId, setSelectedChartId] = useState<string | null>(null);
+    const [tableName, setTableName] = useState('');
+    const [columnName, setColumnName] = useState('');
+    const [countElements, setCountElements] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [currentChartId, setCurrentChartId] = useState(null);
+
     const sampleData = {
         labels: ['January', 'February', 'March', 'April'],
         datasets: [
@@ -71,49 +82,98 @@ const Dashboard: React.FC = () => {
         }
     };
 
-    const handleChartContextMenu = (e: React.MouseEvent) => {
+    const handleChartContextMenu = (e: React.MouseEvent, chartId: string) => {
         e.preventDefault();
-        setContextMenu({ x: e.clientX, y: e.clientY, type: 'paste' });
+        setContextMenu(null);
+        setPasteMenu(null);
+        setContextMenuDaschboard({ x: e.clientX, y: e.clientY, chartId });
     };
 
     const handleCopyClick = (e: React.MouseEvent, chartId: string) => {
-        console.log('Copy button clicked', chartId);
-
         e.stopPropagation();
         const canvas = chartRefs.current[chartId] as HTMLCanvasElement;
-        if (canvas) {
+        const chartToCopy = charts.find(chart => chart.id === chartId);
+
+        if (canvas && chartToCopy) {
             const imageUrl = canvas.toDataURL('image/png');
             setClipboard({
                 id: uuidv4(),
-                type: 'bar',
+                type: chartToCopy.type,
                 data: {
-                    labels: ['Pasted Chart'],
-                    datasets: [{
-                        label: 'Pasted',
-                        data: [1],
-                        backgroundColor: ['#4caf50'],
-                    }],
+                    labels: chartToCopy.data.labels,
+                    datasets: chartToCopy.data.datasets.map(dataset => ({
+                        label: dataset.label,
+                        data: dataset.data,
+                        backgroundColor: dataset.backgroundColor,
+                    })),
                 },
             });
-            alert('Chart copied to clipboard!');
+            toast.success('Диаграмма скопирована в буфер обмена');
         }
+        setIsModalContext(false);
+    };
+
+
+    const handleEditClick = (chartId: any) => {
+        const chartToEdit = charts.find((chart) => chart.id === chartId);
+        if (chartToEdit) {
+            setTableName('Ваши_таблицы'); 
+            setColumnName(chartToEdit.data.labels[0]); 
+            setCountElements(false); 
+            setCurrentChartId(chartId);
+            setIsEditModalOpen(true);
+        }
+    };
+
+    const handlePasteMenu = (e: React.MouseEvent) => {
+        e.preventDefault();
+        setPasteMenu({ x: e.clientX, y: e.clientY });
         setContextMenu(null);
     };
 
     const handlePaste = () => {
         if (clipboard) {
             setCharts((prevCharts) => [...prevCharts, clipboard]);
-            alert('Chart pasted from clipboard!');
+            toast.success('Диаграмма вставлена из буфера обмена');
         } else {
-            alert('Nothing to paste!');
+            toast.warn('Нечего вставлять');
         }
-        setContextMenu(null);
+        setPasteMenu(null);
+    };
+
+    const handleSaveChanges = () => {
+        setCharts((prevCharts) =>
+            prevCharts.map((chart) =>
+                chart.id === currentChartId
+                    ? {
+                        ...chart,
+                        data: {
+                            ...chart.data,
+                            labels: [columnName], // Здесь добавьте логику для обновления данных на основе выбранного столбца
+                            datasets: [{
+                                ...chart.data.datasets[0],
+                                data: countElements ? [/* Логика для подсчета элементов */] : chart.data.datasets[0].data,
+                            }],
+                        },
+                    }
+                    : chart
+            )
+        );
+        toast.success('Изменения сохранены');
+        setIsEditModalOpen(false);
     };
 
     return (
         <div
             className={styles.appContainer}
-            onClick={() => setContextMenu(null)}
+            onClick={() => {
+                setContextMenu(null);
+                setPasteMenu(null);
+            }}
+            onContextMenu={(e) => {
+                e.preventDefault();
+                setPasteMenu({ x: e.clientX, y: e.clientY });
+            }}
         >
             <GridLayout className="layout" cols={12} rowHeight={30} width={1200}>
                 {charts.map((chart, index) => (
@@ -121,14 +181,14 @@ const Dashboard: React.FC = () => {
                         key={chart.id}
                         className={styles.chartCard}
                         data-grid={{ x: 0, y: index * 2, w: 6, h: 6 }}
-                        onContextMenu={handleChartContextMenu}
+                        onContextMenu={(e) => handleChartContextMenu(e, chart.id)}
                     >
                         <div className={styles.dragHandle}>
                             <DragIndicatorIcon />
                         </div>
                         {renderChart(chart)}
-                        <div className={styles.copyIcon} onClick={(e) => handleCopyClick(e, chart.id)}>
-                            <ContentCopyIcon />
+                        <div className={styles.copyIcon} onMouseDown={(e) => { setIsModalContext(true); handleChartContextMenu(e, chart.id) }}>
+                            <MoreVertIcon />
                         </div>
                     </div>
                 ))}
@@ -155,8 +215,59 @@ const Dashboard: React.FC = () => {
                     }}
                     onMouseLeave={() => setContextMenu(null)}
                 >
+                </div>
+            )}
+
+            {pasteMenu && (
+                <div
+                    className={styles.contextMenu}
+                    style={{
+                        position: 'absolute',
+                        top: pasteMenu.y,
+                        left: pasteMenu.x,
+                        backgroundColor: 'white',
+                        border: '1px solid #ccc',
+                        borderRadius: '4px',
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+                    }}
+                    onMouseLeave={() => setPasteMenu(null)}
+                >
                     <button onClick={handlePaste}>Вставить</button>
                 </div>
+            )}
+
+            {contextMenuDaschboard && (
+                <Modal
+                    open={isModalContext}
+                    BackdropProps={{
+                        style: { backgroundColor: 'transparent' },
+                    }}
+                    onClose={() => setIsModalContext(false)}
+                >
+                    <div
+                        className={styles.modalContentDashboard}
+                        style={{
+                            position: 'absolute',
+                            top: contextMenuDaschboard.y,
+                            left: contextMenuDaschboard.x,
+                        }}
+                    >
+                        <div className={styles.widgetMenu}>
+                            <button
+                                className={styles.menuButton}
+                                onClick={(e) => handleCopyClick(e, contextMenuDaschboard.chartId)}
+                            >
+                                Копировать
+                            </button>
+                            <button
+                                className={styles.menuButton}
+                                onClick={() => handleEditClick(contextMenuDaschboard.chartId)}
+                            >
+                                Изменить
+                            </button>
+                        </div>
+                    </div>
+                </Modal>
             )}
 
 
@@ -169,7 +280,7 @@ const Dashboard: React.FC = () => {
                             className={styles.menuButton}
                             onClick={() => addChart('bar')}
                         >
-                            Столбачатая диаграмма
+                            Столбчатая диаграмма
                         </button>
                         <button
                             className={styles.menuButton}
@@ -186,6 +297,39 @@ const Dashboard: React.FC = () => {
                     </div>
                 </div>
             </Modal>
+
+            <Modal open={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
+                <div className={styles.modalContentEdit}>
+                    <h2>Изменить график</h2>
+                    <label>Имя таблицы:</label>
+                    <select value={tableName} onChange={(e) => setTableName(e.target.value)}>
+                        <option value="">Выберите таблицу</option>
+                        <option value="table1">Таблица 1</option>
+                        <option value="table2">Таблица 2</option>
+                    </select>
+
+                    <label>Имя столбца:</label>
+                    <input
+                        type="text"
+                        value={columnName}
+                        onChange={(e) => setColumnName(e.target.value)}
+                        placeholder="Введите имя столбца"
+                    />
+
+                    <label>
+                        <input
+                            type="checkbox"
+                            checked={countElements}
+                            onChange={(e) => setCountElements(e.target.checked)}
+                        />
+                        Подсчитать элементы
+                    </label>
+
+                    <button onClick={handleSaveChanges}>Сохранить изменения</button>
+                </div>
+            </Modal>
+
+            <ToastContainer position="top-right" autoClose={5000} hideProgressBar closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
         </div>
     );
 };

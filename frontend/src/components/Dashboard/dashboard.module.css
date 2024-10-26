@@ -19,19 +19,16 @@
     transition: background-color 0.3s;
 }
 
-.chartCard {
-    width: 100%;
-    height: 100%;
-    padding: 10px;
-    box-sizing: border-box;
-}
-
 .chartContainer {
     width: 100%;
     height: 100%;
 }
 
 .chartCard {
+    width: 100%;
+    height: 100%;
+    padding: 10px;
+    box-sizing: border-box;
     background-color: #f9f9f9;
     border-radius: 8px;
     padding: 16px;
@@ -43,11 +40,12 @@
     cursor: grab;
     transition: transform 0.1s ease;
     padding-bottom: 50px;
-
 }
 
 .chartCard:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
     transform: scale(1.02);
+
 }
 
 .dragHandle {
@@ -128,10 +126,24 @@
 }
 
 .copyIcon {
+    cursor: pointer;
     position: absolute;
     top: 10px;
     right: 10px;
-    cursor: pointer;
+    z-index: 10;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 4px;
+    padding: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    transition: background-color 0.2s ease;
+}
+
+.copyIcon:hover {
+    background-color: rgba(255, 255, 255, 1);
+}
+
+.copyIcon:active {
+    transform: scale(0.95);
 }
 
 button {
@@ -142,4 +154,31 @@ button {
     font-size: 14px;
     font-weight: 600;
     width: fit-content;
+}
+
+.contextButton {
+    color: #000
+}
+
+.modalContentDashboard {
+    background-color: white;
+    max-width: 400px;
+    border-radius: 8px;
+    top: 1px;
+    position: absolute;
+    border: 1px solid #ccc;
+}
+
+.modalContentEdit {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    width: 400px;
+    max-width: 90%;
 }
