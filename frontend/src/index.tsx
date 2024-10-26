@@ -4,7 +4,7 @@ import './index.css';
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
 import StartPage from './components/StartPage';
 import InteractiveTable from './components/InteractiveTable';
-import KanbanBoard from './components/KanbanBoard/KanbanBoard';
+import Dashboard from './components/Dashboard/Dashboard';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -25,8 +25,8 @@ const router = createBrowserRouter([
         element: <InteractiveTable />,
       },
       {
-        path: 'analys',
-        element: <KanbanBoard />,
+        path: 'analyse',
+        element: <Dashboard />,
       },
     ]
   }

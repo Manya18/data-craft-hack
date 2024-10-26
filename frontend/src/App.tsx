@@ -4,7 +4,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import useLocalStorage from 'use-local-storage'
 import StartPage from './components/StartPage';
 import InteractiveTable from './components/InteractiveTable';
-import KanbanBoard from './components/KanbanBoard/KanbanBoard';
+import Dashboard from './components/Dashboard/Dashboard';
 
 function App() {
   const defaultDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -18,7 +18,7 @@ function App() {
       <Routes>
         <Route path="/" element={<StartPage />} />
         <Route path="/table" element={<InteractiveTable />} />
-        <Route path="/analys" element={<KanbanBoard />} />
+        <Route path="/analys" element={<Dashboard />} />
       </Routes>
     </div>
     // </BrowserRouter>
