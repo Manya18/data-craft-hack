@@ -46,22 +46,24 @@ const InteractiveTable: React.FC = () => {
     const [contextMenu, setContextMenu] = useState<ContextMenu>({ visible: false, x: 0, y: 0, row: null });
     const [columnContextMenu, setColumnContextMenu] = useState<ColumnContextMenu>({ visible: false, x: 0, y: 0, column: null });
 
-    // useEffect(() => {
-    //     const fetchData = async () => {
-    //         try {
-    //             const response = await fetch('http://localhost:4000/metrics');
-    //             const data = await response.json();
-    //             setRows(data);
-    //             if (data.length > 0) {
-    //                 const colNames = Object.keys(data[0]).filter(col => col !== 'id');
-    //                 setColumns(colNames);
-    //             }
-    //         } catch (error) {
-    //             console.error('Ошибка при получении данных:', error);
-    //         }
-    //     };
-    //     fetchData();
-    // }, []);
+    const [items, setItems] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(0);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const tableTitle = "nkllk"
+        const fetchData = async () => {
+            try {
+                const response = await fetch(`http://localhost:8080/api/table?table=${tableTitle}&page=${currentPage}`);
+                const data = await response.json();
+                setItems(data);
+            } catch (error) {
+                console.error('Ошибка при получении данных:', error);
+            }
+        };
+        fetchData();
+    }, []);
 
     useEffect(() => {
         let sortedRows = [...rows];

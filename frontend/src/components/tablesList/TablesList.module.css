@@ -1,0 +1,36 @@
+.actionButton{
+    padding: 3px;
+}
+.tablesListPage{
+    padding: 20px;
+}
+.tableListWrapper{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+.tablesList{
+    display: flex;
+    flex-direction: column;
+    gap: 10px
+}
+.tableItem{
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.tableTitleInput,
+.tableTitle{
+    text-decoration: none;
+    color: var(--text-primary);
+    font-size: 18px;
+    width: 300px;
+    height: 34px;
+    border: 1px solid var(--border-color);
+    padding: 2px;
+    border-radius: 4px;
+}
+.tableTitle{
+    &:hover{
+        color: var(--text-primary)
+    }
+}

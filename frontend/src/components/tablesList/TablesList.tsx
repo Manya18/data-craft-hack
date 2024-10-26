@@ -1,79 +1,93 @@
-import React, { useState, ChangeEvent } from "react";
+import React, { useState, ChangeEvent, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import TableItem from "./TableItem";
+import styles from "./TablesList.module.css"
 
 type Table = {
-    id: string;
-    name: string;
+  user_id: string;
+  table_name: string;
 };
 
 const TablesList: React.FC = () => {
-    const [tables, setTables] = useState<Table[]>([]);
-    const navigate = useNavigate();
-    const { id } = useParams<{ id: string }>();
-    console.log('ds', sessionStorage.getItem('userID'))
+  const [tables, setTables] = useState<Table[]>([]);
+  const [trigger, setTrigger] = useState('');
+  console.log("ds", sessionStorage.getItem("userID"));
+  const user_id = sessionStorage.getItem("userID");
 
-    const parseJSONFile = (content: string, fileName: string): void => {
+  useEffect(() => {
+    const fetchTables = async () => {
+      if (user_id) {
         try {
-            const data = JSON.parse(content);
-            const newTable: Table = {
-                id: `${Date.now()}`,
-                name: fileName,
-            };
-            setTables(prevTables => [...prevTables, newTable]);
+          const response = await fetch(
+            `http://localhost:8080/api/tables?user_id=${user_id}`
+          );
+          if (!response.ok) throw new Error("Trouble");
+          const tablesData = await response.json();
+          setTables(tablesData);
         } catch (error) {
-            console.error("Ошибка чтения JSON:", error);
+          console.error(error);
         }
+      }
     };
+    fetchTables();
+  }, [user_id, trigger]);
 
-    const handleImportFile = (event: React.ChangeEvent<HTMLInputElement>, type: string) => {
+  const handleImportFile = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    type: string
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append("file", file);
+    fetch(
+      `http://localhost:8080/api/upload${type}/${sessionStorage.getItem(
+        "userID"
+      )}`,
+      {
+        method: "POST",
+        body: formData,
+      }
+    )
+      .then((response) => response.text())
+      .then((data) => {
+        console.log(data);
+        setTrigger(data);
+    });
+  };
 
-        const file = event.target.files?.[0];
-        if (!file) return;
-        const formData = new FormData();
-        formData.append('file', file);
-        fetch(`http://localhost:8080/api/upload${type}/${sessionStorage.getItem('userID')}`, {
-            method: 'POST',
-            body: formData,
-        })
-            .then(response => response.text())
-            .then(data => console.log(data));
-    };
-
-    const handleTableClick = (id: string): void => {
-        navigate(`/table/${id}`);
-    };
-
-    return (
-        <div>
-            <h3>Список таблиц</h3>
-            <div>
-                <label>
-                    Загрузить JSON файл
-                    <input
-                        type="file"
-                        accept=".json"
-                        onChange={(e) => handleImportFile(e, 'JSON')}
-                    />
-                </label>
-                <label>
-                    Загрузить CSV файл
-                    <input
-                        type="file"
-                        accept=".csv"
-                        onChange={(e) => handleImportFile(e, 'CSV')}
-                    />
-                </label>
-            </div>
-
-            <ul>
-                {tables.map((table) => (
-                    <li key={table.id} onClick={() => handleTableClick(table.id)}>
-                        {table.name}
-                    </li>
-                ))}
-            </ul>
+  return (
+    <div className={styles.tablesListPage}>
+      <h3>Загруженные таблицы</h3>
+      <div className={styles.tableListWrapper}>
+        <ul className={styles.tablesList}>
+            {tables.map((table) => (
+                <TableItem key={table.table_name} tableName={table.table_name} setTrigger={setTrigger}/>
+            ))}
+        </ul>
+        <div className={styles.importFileGroup}>
+            <label>
+            Загрузить JSON файл
+            <input
+                type="file"
+                accept=".json"
+                onChange={(e) => handleImportFile(e, "JSON")}
+            />
+            </label>
+            <label>
+            Загрузить CSV файл
+            <input
+                type="file"
+                accept=".csv"
+                onChange={(e) => handleImportFile(e, "CSV")}
+            />
+            </label>
         </div>
-    );
+        </div>
+
+      
+    </div>
+  );
 };
 
 export default TablesList;

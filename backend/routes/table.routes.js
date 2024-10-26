@@ -20,5 +20,8 @@ module.exports = (tableController) => {
     router.put('/type', (req, res) => {
         tableController.updateColumnType(req, res);
     });
+    router.get('/table', (req, res) => {
+        tableController.getTableRows(req, res);
+    });
     return router;
 };

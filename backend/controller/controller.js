@@ -22,7 +22,7 @@ const processCSVFile = async (req, res, pool) => {
                 results.push(modifiedData);
             })
             .on('end', async () => {
-                const client = await pool.connect(); // Дожидаемся получения клиента
+                const client = await pool.connect();
 
                 try {
                     const keys = Object.keys(results[0]);
@@ -30,10 +30,8 @@ const processCSVFile = async (req, res, pool) => {
 
                     await client.query('BEGIN');
 
-                    // Попытка создать таблицу
                     await client.query(`CREATE TABLE ${tableName} (id SERIAL PRIMARY KEY, ${keysWithTypes.join(', ')})`);
 
-                    // Вставляем данные
                     for (const row of results) {
                         await client.query(`INSERT INTO ${tableName} (${keys.join(', ')}) VALUES(${keys.map(key => row[key] === '' ? 'NULL' : `'${row[key]}'`).join(', ')})`);                    }
 
@@ -43,7 +41,7 @@ const processCSVFile = async (req, res, pool) => {
 
                     res.send('Data inserted into database');
                 } catch (err) {
-                    await client.query('ROLLBACK'); // Откат транзакции в случае ошибки
+                    await client.query('ROLLBACK');
                     console.error(err);
 
                     if (err.code === '42P07') {
@@ -52,7 +50,7 @@ const processCSVFile = async (req, res, pool) => {
                         res.status(500).send('Error inserting data into database');
                     }
                 } finally {
-                    client.release(); // Освобождаем клиента обратно в пул
+                    client.release();
                 }
             });
     } catch (err) {
@@ -94,7 +92,7 @@ const processJSONFile = async (req, res, pool) => {
 
         await client.query('BEGIN');
 
-        await client.query(`CREATE TABLE ${tableName} (${keysWithTypes.join(', ')})`);
+        await client.query(`CREATE TABLE ${tableName} (id SERIAL PRIMARY KEY, ${keysWithTypes.join(', ')})`);
 
         for (const row of jsonArray) {
             await client.query(`INSERT INTO ${tableName} (${keys.join(', ')}) VALUES(${keys.map(key => `'${row[keyMapping[key]] === '' ? null : row[keyMapping[key]]}'`).join(', ')})`);

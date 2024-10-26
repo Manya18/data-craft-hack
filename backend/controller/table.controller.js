@@ -19,6 +19,28 @@ class TableController {
         }
     }
 
+    async getTableRows(req, res) {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const offset = (page - 1) * limit;
+        const table = req.query.table
+        try {
+            const result = await this.db.query(`SELECT * FROM ${table} ORDER BY id LIMIT $1 OFFSET $2`, [limit, offset]);
+            const totalCountResult = await this.db.query(`SELECT COUNT(*) FROM ${table}`);
+            const totalCount = parseInt(totalCountResult.rows[0].count);
+
+            res.json({
+                data: result.rows,
+                totalCount: totalCount,
+                totalPages: Math.ceil(totalCount / limit),
+                currentPage: page,
+            });
+        } catch (error) {
+            console.error(error);
+            res.status(500).send('Ошибка сервера');
+        }
+    }
+
     async updateTableName(req, res) {
         const { old_table_name, new_table_name } = req.body;
         const client = await this.db.connect();
@@ -45,7 +67,7 @@ class TableController {
     }
 
     async removeTable(req, res) {
-        const { table_name } = req.query;
+        const { table_name } = req.body;
         const client = await this.db.connect();
 
         try {
