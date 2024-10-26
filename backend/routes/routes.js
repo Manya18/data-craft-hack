@@ -1,5 +1,5 @@
 const express = require('express');
-const { processFile } = require('./controller');
+const { processFile } = require('../controller/controller');
 const multer = require('multer');
 const router = express.Router();
 const upload = multer({dest: 'updloads/'});
