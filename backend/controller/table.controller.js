@@ -20,13 +20,55 @@ class TableController {
     }
 
     async getTableRows(req, res) {
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 20;
-        const offset = (page - 1) * limit;
-        const table = req.query.table
+        const page = parseInt(req.query.page) || 1; // Текущая страница
+        const limit = parseInt(req.query.limit) || 20; // Количество записей на странице
+        const offset = (page - 1) * limit; // Смещение для пагинации
+        const table = req.query.table; // Название таблицы
+
+        // Получаем параметры сортировки и фильтрации из запроса
+        const sortBy = req.query.sortBy || 'id'; // По умолчанию сортируем по id
+        const sortOrder = req.query.sortOrder === 'desc' ? 'DESC' : 'ASC'; // По умолчанию по возрастанию
+
+        // Получаем параметры фильтрации
+        const filterParams = req.query.filters ? JSON.parse(req.query.filters) : []; // Ожидаем массив объектов { column: 'columnName', value: 'value' }
+
         try {
-            const result = await this.db.query(`SELECT * FROM ${table} ORDER BY id LIMIT $1 OFFSET $2`, [limit, offset]);
-            const totalCountResult = await this.db.query(`SELECT COUNT(*) FROM ${table}`);
+            // Создаем базовый запрос
+            let query = `SELECT * FROM ${table}`;
+            const params = []; // Параметры для фильтрации
+            let filterConditions = [];
+
+            // Добавляем условие фильтрации, если указаны параметры
+            if (filterParams.length > 0) {
+                filterConditions = filterParams.map((filter, index) => {
+                    params.push(filter.value); // Добавляем значение фильтрации в массив параметров
+                    return `${filter.column} = $${params.length}`; // Создаем условие для фильтрации
+                });
+                query += ` WHERE ${filterConditions.join(' AND ')}`; // Объединяем условия с помощью AND
+            }
+
+            // Добавляем сортировку
+            query += ` ORDER BY ${sortBy} ${sortOrder}`;
+
+            // Добавляем пагинацию
+            query += ` LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+            params.push(limit, offset); // Добавляем limit и offset в параметры
+
+            console.log('Executing query:', query);
+            console.log('With parameters:', params);
+
+            const result = await this.db.query(query, params);
+
+            // Запрос для получения общего количества строк с учетом фильтрации
+            let totalCountQuery = `SELECT COUNT(*) FROM ${table}`;
+            if (filterParams.length > 0) {
+                const totalFilterConditions = filterParams.map((filter, index) => {
+                    return `${filter.column} = $${index + 1}`; // Используем правильный индекс для подсчета
+                });
+                totalCountQuery += ` WHERE ${totalFilterConditions.join(' AND ')}`;
+            }
+
+            const totalCountResult = await this.db.query(totalCountQuery, params.slice(0, filterParams.length)); // Передаем только параметры фильтрации
             const totalCount = parseInt(totalCountResult.rows[0].count);
 
             res.json({
@@ -36,7 +78,7 @@ class TableController {
                 currentPage: page,
             });
         } catch (error) {
-            console.error(error);
+            console.error('Ошибка при выполнении запроса:', error);
             res.status(500).send('Ошибка сервера');
         }
     }
@@ -199,7 +241,7 @@ class TableController {
         try {
             await client.query(`DELETE FROM ${table_name} WHERE id=$1`, [row_id]);
             res.send(`Строка удалена`);
-        } catch(err) {
+        } catch (err) {
             console.error('Ошибка при удалении строки ячейки', err);
             res.status(500).json({ error: 'Не удалось удалить строку. Попробуйте позже' });
         } finally {
