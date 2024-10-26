@@ -64,6 +64,54 @@ class TableController {
             client.release();
         }
     }
+
+    async addColumn(req, res) {
+        const { table_name, column_name, column_type } = req.body;
+        const client = await this.db.connect();
+
+        try {
+            await client.query(`ALTER TABLE ${table_name} ADD COLUMN ${column_name} ${column_type}`);
+            res.send(`Колонка ${column_name} успешно добавлена в таблицу ${table_name}`);
+        } catch (err) {
+            console.error('Ошибка при добавлении колонки', err);
+            res.status(500).json({ error: 'Не удалось добавить колонку. Попробуйте позже' });
+        } finally {
+            client.release();
+        }
+    }
+
+    async removeColumn(req, res) {
+        const { table_name, column_name } = req.body;
+        const client = await this.db.connect();
+
+        try {
+            await client.query(`ALTER TABLE ${table_name} DROP COLUMN ${column_name}`);
+            res.send(`Колонка ${column_name} успешно удалена из таблицы ${table_name}`);
+        } catch (err) {
+            console.error('Ошибка при удалении колонки', err);
+            res.status(500).json({ error: 'Не удалось удалить колонку. Попробуйте позже' });
+        } finally {
+            client.release();
+        }
+    }
+
+    async updateColumnType(req, res) {
+        const {table_name, column_name, new_column_type} = req.body;
+        const client = await this.db.connect();
+
+        try {
+            await client.query(`ALTER TABLE ${table_name} ALTER COLUMN ${column_name} SET DATA TYPE ${new_column_type} USING ${column_name}::${new_column_type};`);            res.send(`Тип данных успешно изменен`);
+        } catch (err) {
+            console.error('Ошибка при изменений типа данных', err);
+            if (err.code === '42804') { // Код ошибки для "неверный тип данных"
+                res.status(400).json({ error: `Не удалось изменить тип данных: несовместимый тип для преобразования ${column_name} в ${new_column_type}.` });
+            } else {
+                res.status(500).json({ error: 'Не удалось изменить тип данных. Попробуйте позже' });
+            }
+        } finally {
+            client.release();
+        }
+    }
 }
 
 module.exports = TableController;

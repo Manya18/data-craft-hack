@@ -11,5 +11,14 @@ module.exports = (tableController) => {
     router.delete('/table', (req, res) => {
         tableController.removeTable(req, res);
     });
+    router.put('/column', (req, res) => {
+        tableController.addColumn(req, res);
+    });
+    router.delete('/column', (req, res) => {
+        tableController.removeColumn(req, res);
+    });
+    router.put('/type', (req, res) => {
+        tableController.updateColumnType(req, res);
+    });
     return router;
 };

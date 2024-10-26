@@ -10,8 +10,6 @@ const processCSVFile = async (req, res, pool) => {
     const userId = req.params.id;
     const tableName = getTableName(req.file.originalname, userId)
 
-    console.log(tableName);
-
     try {
         fs.createReadStream(req.file.path)
             .pipe(csv({ separator: ';' }))
@@ -33,12 +31,11 @@ const processCSVFile = async (req, res, pool) => {
                     await client.query('BEGIN');
 
                     // Попытка создать таблицу
-                    await client.query(`CREATE TABLE ${tableName} (${keysWithTypes.join(', ')})`);
+                    await client.query(`CREATE TABLE ${tableName} (id SERIAL PRIMARY KEY, ${keysWithTypes.join(', ')})`);
 
                     // Вставляем данные
                     for (const row of results) {
-                        await client.query(`INSERT INTO ${tableName} (${keys.join(', ')}) VALUES(${keys.map(key => `'${row[key]}'`).join(', ')})`);
-                    }
+                        await client.query(`INSERT INTO ${tableName} (${keys.join(', ')}) VALUES(${keys.map(key => row[key] === '' ? 'NULL' : `'${row[key]}'`).join(', ')})`);                    }
 
                     await client.query(`INSERT INTO Tables_list (user_id, table_name) VALUES ($1, $2)`, [userId, tableName]);
 
@@ -65,11 +62,8 @@ const processCSVFile = async (req, res, pool) => {
 }
 
 const getTableName = (fileName, userId) => {
-    const tableName = fileName.split('.')[0]
-        .replace(/[\s-]+/g, '_')
-        .replace(/[^\d\w_]/g, '') + `_${userId}`;
+    const tableName = fileName.split('.')[0].toLowerCase().split(" ").join("_").replace(/[^a-zA-Zа-яА-Я0-9_]/g, '') + `_${userId}`;
     return tableName;
-
 }
 
 const formatKey = (key) => {
