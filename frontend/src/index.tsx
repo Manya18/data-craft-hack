@@ -6,6 +6,9 @@ import InteractiveTable from './components/InteractiveTable';
 import Dashboard from './components/Dashboard/Dashboard';
 import App from './App';
 import TablesList from './components/tablesList/TablesList';
+import Registration from './components/profille/Registration';
+import Login from './components/profille/Login';
+import StartPage from './components/profille/StartPage';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -32,8 +35,25 @@ const router = createBrowserRouter([
       {
         path: 'analyse',
         element: <Dashboard />,
-      },
+      }
     ]
+  },
+  {
+    path: '/signin',
+    element: <StartPage />,
+    children: [
+      {
+        path: '',
+        element: <Navigate to="autorizate" />
+      },
+      {
+        path: 'autorizate',
+        element: <Login />,
+      },
+      {
+        path: 'registrate',
+        element: <Registration />,
+      }]
   }
 ])
 
