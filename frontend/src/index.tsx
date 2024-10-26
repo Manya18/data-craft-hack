@@ -2,9 +2,10 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
-import StartPage from './components/StartPage';
 import InteractiveTable from './components/InteractiveTable';
 import Dashboard from './components/Dashboard/Dashboard';
+import App from './App';
+import TablesList from './components/tablesList/TablesList';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -14,14 +15,18 @@ const router = createBrowserRouter([
 
   {
     path: '/',
-    element: <StartPage />,
+    element: <App />,
     children: [
       {
         path: '',
-        element: <Navigate to="table" />
+        element: <Navigate to="tables" />
       },
       {
-        path: 'table',
+        path: 'tables',
+        element: <TablesList />,
+      },
+      {
+        path: 'table/:id',
         element: <InteractiveTable />,
       },
       {
