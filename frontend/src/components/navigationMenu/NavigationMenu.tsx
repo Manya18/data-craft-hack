@@ -2,7 +2,7 @@ import { Divider } from "@mui/material";
 import styles from "./navigationMenu.module.css";
 import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
 import { useState } from "react";
-import Logout from "../profille/Logout";
+import Logout from "../profilePage/Logout";
 
 const NavigationMenu = () => {
   const [menuOpen, setMenuOpen] = useState(false);

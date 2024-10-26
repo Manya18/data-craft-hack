@@ -3,22 +3,6 @@
     padding-top: 50px;
 }
 
-.addWidgetButton {
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    margin-top: 50px;
-    padding: 10px 20px;
-    background-color: var(--accent);
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: bold;
-    transition: background-color 0.3s;
-}
-
 .chartContainer {
     width: 100%;
     height: 100%;
@@ -55,7 +39,7 @@
 }
 
 .addWidgetButton {
-    margin-top: 50px;
+    margin-top: 0;
     padding: 10px 20px;
     background-color: var(--accent);
     color: white;
@@ -65,6 +49,22 @@
     font-size: 16px;
     font-weight: bold;
     transition: background-color 0.3s;
+}
+
+.fixedButtonContainer {
+    position: fixed;
+    top: 60px;
+    display: flex;
+    gap: 20px;
+    z-index: 1000;
+    width: 100%;
+    padding: 20px;
+    background-color: white;
+    transition: top 0.3s ease;
+}
+
+.scrolled {
+    top: 0px;
 }
 
 .addWidgetButton:hover {
@@ -81,13 +81,14 @@
 
 .menuButton {
     padding: 10px 20px;
-    background-color: white !important;
+    background-color: white;
     color: #000;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     font-size: 14px;
-    transition: background-color 0.3s;
+    width: 100%;
+    text-align: left;
 }
 
 .menuButton:hover {
@@ -98,7 +99,20 @@
     background-color: white;
     max-width: 400px;
     border-radius: 8px;
-    top: 106px;
+    top: 117px;
+    left: 20px;
+    padding: 2px;
+    position: absolute;
+    border: 1px solid #ccc;
+}
+
+.modalContentExport {
+    background-color: white;
+    max-width: 400px;
+    border-radius: 8px;
+    top: 117px;
+    left: 20px;
+    padding: 2px;
     position: absolute;
     border: 1px solid #ccc;
 }
@@ -125,35 +139,13 @@
     background-color: #f0f0f0;
 }
 
-.copyIcon {
+.moreVertIcon {
     cursor: pointer;
     position: absolute;
     top: 10px;
     right: 10px;
     z-index: 10;
-    background-color: rgba(255, 255, 255, 0.8);
-    border-radius: 4px;
     padding: 5px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-    transition: background-color 0.2s ease;
-}
-
-.copyIcon:hover {
-    background-color: rgba(255, 255, 255, 1);
-}
-
-.copyIcon:active {
-    transform: scale(0.95);
-}
-
-button {
-    background-color: var(--accent);
-    color: var(--text-accent);
-    border-radius: 5px;
-    padding: 8px 25px;
-    font-size: 14px;
-    font-weight: 600;
-    width: fit-content;
 }
 
 .contextButton {
@@ -182,3 +174,9 @@ button {
     width: 400px;
     max-width: 90%;
 }
+
+/* 
+.ChartName {
+    position: absolute;
+    font-size: 16px;
+} */

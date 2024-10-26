@@ -2,7 +2,7 @@ import { Divider } from "@mui/material";
 import styles from "./startPage.module.css";
 import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
 import { useState } from "react";
-import Logout from "../profille/Logout";
+import Logout from "./Logout";
 import { Outlet } from "react-router-dom";
 
 const startPage = () => {
