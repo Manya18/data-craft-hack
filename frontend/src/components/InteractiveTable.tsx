@@ -327,7 +327,7 @@ const InteractiveTable: React.FC = () => {
         formData.append('file', file);
 
         Papa.parse(file, {
-            delimiter: ";",
+            // delimiter: ";",
             header: true,
             skipEmptyLines: true,
             complete: (results: any) => {
@@ -342,7 +342,7 @@ const InteractiveTable: React.FC = () => {
                     const columns = Object.keys(data[0]).map(key => key.toLowerCase());
                     setColumns(columns);
                     setRows(formattedData);
-                    send(formData)
+                    // send(formData)
                 }
             },
             error: (error: any) => {
@@ -351,14 +351,14 @@ const InteractiveTable: React.FC = () => {
         });
     };
 
-    const send = (formData: any) => {
-        fetch('http://localhost:8080/api/upload', {
-            method: 'POST',
-            body: formData,
-        })
-            .then(response => response.text())
-            .then(data => console.log(data));
-    };
+    // const send = (formData: any) => {
+    //     fetch('http://localhost:8080/api/upload', {
+    //         method: 'POST',
+    //         body: formData,
+    //     })
+    //         .then(response => response.text())
+    //         .then(data => console.log(data));
+    // };
 
 
     return (
@@ -451,7 +451,7 @@ const InteractiveTable: React.FC = () => {
                     <tr>
                         <td colSpan={columns.length} style={{ textAlign: 'center' }}>
                             <button onClick={openAddRowModal}>
-                                <FaPlus /> {t(`table.add`)}
+                                <FaPlus /> Добавить
                             </button>
                         </td>
                     </tr>
@@ -475,7 +475,7 @@ const InteractiveTable: React.FC = () => {
                             <option value="INT">INT</option>
                             <option value="BOOLEAN">BOOLEAN</option>
                         </select>
-                        <button onClick={() => addColumn(newColumnName, newColumnType)}>{t(`table.add`)}</button>
+                        <button onClick={() => addColumn(newColumnName, newColumnType)}>Добавить</button>
                         <button onClick={closeAddColumnModal}>Закрыть</button>
                     </div>
                 </div>

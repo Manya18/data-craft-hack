@@ -15,7 +15,7 @@ function StartPage() {
         if (value == "login") setIsLogin(true);
         else setIsLogin(false);
     }
-    const tabs = ["table", "analys"]
+    const tabs = ["table", "analyse"]
 
     return (
         <div className={styles.startForm}>
