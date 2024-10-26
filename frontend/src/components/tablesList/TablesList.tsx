@@ -25,17 +25,13 @@ const TablesList: React.FC = () => {
         }
     };
 
-    const handleImportCSVFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImportFile = (event: React.ChangeEvent<HTMLInputElement>, type: string) => {
 
         const file = event.target.files?.[0];
         if (!file) return;
         const formData = new FormData();
         formData.append('file', file);
-        send(formData);
-    };
-
-    const send = (formData: any) => {
-        fetch(`http://localhost:8080/api/upload/${sessionStorage.getItem('userID')}`, {
+        fetch(`http://localhost:8080/api/upload${type}/${sessionStorage.getItem('userID')}`, {
             method: 'POST',
             body: formData,
         })
@@ -51,20 +47,20 @@ const TablesList: React.FC = () => {
         <div>
             <h3>Список таблиц</h3>
             <div>
-                {/* <label>
+                <label>
                     Загрузить JSON файл
                     <input
                         type="file"
                         accept=".json"
-                        onChange={(e) => handleFileUpload(e, 'json')}
+                        onChange={(e) => handleImportFile(e, 'JSON')}
                     />
-                </label> */}
+                </label>
                 <label>
                     Загрузить CSV файл
                     <input
                         type="file"
                         accept=".csv"
-                        onChange={(e) => handleImportCSVFile(e)}
+                        onChange={(e) => handleImportFile(e, 'CSV')}
                     />
                 </label>
             </div>

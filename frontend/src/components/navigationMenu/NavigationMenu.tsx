@@ -11,7 +11,6 @@ const NavigationMenu = () => {
   };
   const isTabActive = (tabName: string) => {
     const linkParts = window.location.pathname.split('/');
-    console.log(linkParts)
     return linkParts.includes(tabName)
   }
 
@@ -23,7 +22,7 @@ const NavigationMenu = () => {
             <a
               href="/tables"
               className={
-                styles.tab + " " + (isTabActive("table") && styles.active)
+                styles.tab + " " + (isTabActive("tables") && styles.active)
               }
             >
               Таблицы

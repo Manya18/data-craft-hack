@@ -5,20 +5,12 @@ const path = require('path');
 
 const upload = multer({ dest: 'uploads/' });
 
-function isNumber(value) {
-    const num = parseFloat(value);
-    return !isNaN(num) && isFinite(num);
-}
-
-const processFile = async (req, res, pool) => {
+const processCSVFile = async (req, res, pool) => {
     const results = [];
     const userId = req.params.id;
-    const tableName = req.file.originalname.split('.')[0]
-        .replace(/[\s-]+/g, '_')
-        .replace(/[^\d\w_]/g, '') + `_${userId}`;
+    const tableName = getTableName(req.file.originalname, userId)
 
     console.log(tableName);
-    let columns = [];
 
     try {
         fs.createReadStream(req.file.path)
@@ -73,6 +65,66 @@ const processFile = async (req, res, pool) => {
     }
 }
 
+const getTableName = (fileName, userId) => {
+    const tableName = fileName.split('.')[0]
+        .replace(/[\s-]+/g, '_')
+        .replace(/[^\d\w_]/g, '') + `_${userId}`;
+    return tableName;
+
+}
+
+const formatKey = (key) => {
+    return key.split(" ").join("_").replace(/[^a-zA-Zа-яА-Я0-9_]/g, '') || null
+}
+
+const processJSONFile = async (req, res, pool) => {
+    const userId = req.params.id;
+    const tableName = getTableName(req.file.originalname, userId)
+    const client = await pool.connect();
+
+    try {
+
+        const jsonData = fs.readFileSync(req.file.path, 'utf8');
+        const jsonArray = JSON.parse(jsonData);
+        if (!Array.isArray(jsonArray)) {
+            return res.status(400).send('JSON file must contain an array of objects.');
+        }
+
+        const keyMapping = {};
+        const keys = Object.keys(jsonArray[0]).map(key => {
+            const formattedKey = formatKey(key);
+            keyMapping[formattedKey] = key;
+            return formattedKey;
+        });
+
+        const keysWithTypes = keys.map(key => `${key} TEXT`);
+
+        await client.query('BEGIN');
+
+        await client.query(`CREATE TABLE ${tableName} (${keysWithTypes.join(', ')})`);
+
+        for (const row of jsonArray) {
+            await client.query(`INSERT INTO ${tableName} (${keys.join(', ')}) VALUES(${keys.map(key => `'${row[keyMapping[key]] === '' ? null : row[keyMapping[key]]}'`).join(', ')})`);
+        }
+        await client.query(`INSERT INTO Tables_list (user_id, table_name) VALUES ($1, $2)`, [userId, tableName]);
+        await client.query('COMMIT');
+
+        res.send('Data inserted into database');
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error(err);
+
+        if (err.code === '42P07') {
+            res.status(400).send(`Таблица ${tableName} уже существует.`);
+        } else {
+            res.status(500).send('Error inserting data into database');
+        }
+    } finally {
+        client.release();
+    }
+}
+
 module.exports = {
-    processFile
+    processCSVFile,
+    processJSONFile
 };
