@@ -20,5 +20,14 @@ module.exports = (tableController) => {
     router.put('/type', (req, res) => {
         tableController.updateColumnType(req, res);
     });
+    router.put('/row', (req, res) => {
+        tableController.addRow(req, res);
+    });
+    router.put('/cell', (req, res) => {
+        tableController.updateCell(req, res);
+    });
+    router.delete('/row', (req, res) => {
+        tableController.removeRow(req, res);
+    });
     return router;
 };
