@@ -35,7 +35,7 @@ const TablesList: React.FC = () => {
     };
 
     const send = (formData: any) => {
-        fetch('http://localhost:8080/api/upload', {
+        fetch(`http://localhost:8080/api/upload/${sessionStorage.getItem('userID')}`, {
             method: 'POST',
             body: formData,
         })

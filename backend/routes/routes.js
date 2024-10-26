@@ -7,7 +7,7 @@ const upload = multer({dest: 'updloads/'});
 
 
 module.exports = (pool) => {
-    router.post('/upload', upload.single('file'), (req, res) => {
+    router.post('/upload/:id', upload.single('file'), (req, res) => {
         processFile(req, res, pool);
     });
     return router;
