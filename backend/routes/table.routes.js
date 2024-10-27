@@ -35,5 +35,8 @@ module.exports = (tableController) => {
     router.delete('/row', (req, res) => {
         tableController.removeRow(req, res);
     });
+    router.get('/columns', (req, res) => {
+        tableController.getColumnsName(req, res);
+    });
     return router;
 };
