@@ -16,7 +16,9 @@ import saveAs from "file-saver";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import PptxGenJS from "pptxgenjs";
-import styled from '@emotion/styled';
+import { ChartOptions } from 'chart.js';
+
+import './DashboardChartStyles.css';
 
 ChartJS.register(...registerables);
 
@@ -33,13 +35,16 @@ interface ChartData {
         }[];
     };
 }
+type Table = {
+    user_id: string;
+    table_name: string;
+};
 
 const Dashboard: React.FC = () => {
     const [charts, setCharts] = useState<ChartData[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isModalContext, setIsModalContext] = useState(false);
     const [isExportOpen, setIsExportOpen] = useState(false);
-
     const [contextMenu, setContextMenu] = useState<{ x: number; y: number; chartId: string } | null>(null);
     const [contextMenuDaschboard, setContextMenuDaschboard] = useState<{ x: number; y: number; chartId: string } | null>(null);
     const [clipboard, setClipboard] = useState<ChartData | null>(null);
@@ -52,6 +57,30 @@ const Dashboard: React.FC = () => {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [currentChartId, setCurrentChartId] = useState(null);
     const [isScrolled, setIsScrolled] = useState(false);
+    const [customStyle, setCustomStyle] = useState<HTMLStyleElement | null>(null);
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const [tables, setTables] = useState<Table[]>([]);
+    const [trigger, setTrigger] = useState('');
+
+    const user_id = sessionStorage.getItem("userID");
+
+    useEffect(() => {
+        const fetchTables = async () => {
+            if (user_id) {
+                try {
+                    const response = await fetch(
+                        `http://localhost:8080/api/tables?user_id=${user_id}`
+                    );
+                    if (!response.ok) throw new Error("Trouble");
+                    const tablesData = await response.json();
+                    setTables(tablesData);
+                } catch (error) {
+                    console.error(error);
+                }
+            }
+        };
+        fetchTables();
+    }, [user_id, trigger]);
 
     const handleScroll = () => {
         if (window.scrollY > 50) {
@@ -72,7 +101,7 @@ const Dashboard: React.FC = () => {
         labels: ['January', 'February', 'March', 'April'],
         datasets: [
             {
-                label: 'test',
+                label: '',
                 data: [30, 50, 40, 60],
                 backgroundColor: ['#4caf50', '#2196f3', '#ff9800', '#f44336'],
             },
@@ -103,68 +132,233 @@ const Dashboard: React.FC = () => {
     }
 
 
-    const renderChart = (chart: ChartData) => {
-        const options = {
-            maintainAspectRatio: false,
+    const getChartOptions = (chartType: any) => {
+        const rootStyles = getComputedStyle(document.documentElement);
+
+        const legendDisplay = rootStyles.getPropertyValue('--legend-display').trim() === 'true';
+        const legendPosition = rootStyles.getPropertyValue('--legend-position').trim();
+        const legendColor = rootStyles.getPropertyValue('--legend-color').trim();
+        const legendFontSize = parseInt(rootStyles.getPropertyValue('--legend-font-size'), 10);
+
+        const axisColor = rootStyles.getPropertyValue('--axis-color').trim();
+        const axisTickColor = rootStyles.getPropertyValue('--axis-tick-color').trim();
+        const axisFontSize = parseInt(rootStyles.getPropertyValue('--axis-font-size'), 10);
+        const axisTitleFontSize = parseInt(rootStyles.getPropertyValue('--axis-title-font-size'), 10);
+
+        if (chartType === 'bar') {
+            return {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: legendDisplay,
+                        position: legendPosition as 'top' | 'bottom' | 'left' | 'right',
+                        labels: {
+                            color: legendColor,
+                            font: {
+                                size: legendFontSize,
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Ось X',
+                            color: axisColor,
+                            font: {
+                                size: axisTitleFontSize,
+                            }
+                        },
+                        ticks: {
+                            color: axisTickColor,
+                            font: {
+                                size: axisFontSize,
+                            }
+                        }
+                    },
+                    y: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Ось Y',
+                            color: axisColor,
+                            font: {
+                                size: axisTitleFontSize,
+                            }
+                        },
+                        ticks: {
+                            color: axisTickColor,
+                            font: {
+                                size: axisFontSize,
+                            }
+                        },
+                        beginAtZero: true
+                    }
+                }
+            } as ChartOptions<'bar'>;
+        } else if (chartType === 'pie' || chartType === 'doughnut') {
+            return {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: legendDisplay,
+                        position: legendPosition as 'top' | 'bottom' | 'left' | 'right',
+                        labels: {
+                            color: legendColor,
+                            font: {
+                                size: legendFontSize,
+                            }
+                        }
+                    }
+                }
+            } as ChartOptions<'pie'>;
+        }
+
+        return {};
+    };
+
+    const getHistogramOptions = (): ChartOptions<'bar'> => {
+        return {
             responsive: true,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        color: 'var(--text-color)',
+                        font: {
+                            size: 14,
+                        },
+                    },
+                },
+                tooltip: {
+                    callbacks: {
+                        label: (tooltipItem) => {
+                            return `Частота: ${tooltipItem.raw}`;
+                        },
+                    },
+                },
+            },
+            scales: {
+                x: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Границы',
+                        color: 'var(--axis-color)',
+                        font: {
+                            size: 16,
+                        },
+                    },
+                    ticks: {
+                        color: 'var(--axis-tick-color)',
+                    },
+                },
+                y: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Частота',
+                        color: 'var(--axis-color)',
+                        font: {
+                            size: 16,
+                        },
+                    },
+                    ticks: {
+                        color: 'var(--axis-tick-color)',
+                    },
+                },
+            },
+        };
+    };
+
+
+    const renderChart = (chart: ChartData) => {
+        const rootStyles = getComputedStyle(document.documentElement);
+        const chartWidth = '100%';
+        const chartHeight = '100%';
+
+        let options: ChartOptions<'bar'> | ChartOptions<'pie'> | ChartOptions<'doughnut'> = {};
+
+        if (chart.type === 'bar') {
+            options = getChartOptions('bar');
+        } else if (chart.type === 'pie') {
+            options = getChartOptions('pie');
+        } else if (chart.type === 'doughnut') {
+            options = getChartOptions('doughnut');
+        } else if (chart.type === 'histogram') {
+            options = getHistogramOptions();
+        }
+
+        const barColors = [];
+        const barBorderColors = [];
+        for (let i = 1; i <= 10; i++) {
+            barColors.push(rootStyles.getPropertyValue(`--bar-color-${i}`).trim());
+            barBorderColors.push(rootStyles.getPropertyValue(`--bar-border-color-${i}`).trim());
+        }
+        const barBorderWidth = parseInt(rootStyles.getPropertyValue('--bar-border-width'), 10);
+
+        const chartData = {
+            labels: chart.data.labels,
+            datasets: [
+                {
+                    label: chart.data.datasets[0].label || 'Dataset 1',
+                    data: chart.type === 'histogram' ? createBins(chart.data.datasets[0].data, 5) : chart.data.datasets[0].data,
+                    backgroundColor: barColors,
+                    borderColor: barBorderColors,
+                    borderWidth: barBorderWidth,
+                },
+            ],
         };
 
-        const chartWidth = '90%';
-        const chartHeight = '90%';
         return (
-            <div style={{ width: chartWidth, height: chartHeight }}>
+            <div style={{ width: chartWidth, height: chartHeight, display: "flex", justifyContent: "center", paddingBottom: "40px" }}>
                 {(() => {
                     switch (chart.type) {
                         case 'bar':
                             return (
                                 <Bar
                                     ref={(ref) => (chartRefs.current[chart.id] = ref?.canvas ?? null)}
-                                    data={chart.data}
-                                    options={options}
-                                />
+                                    data={chartData}
+                                    options={options as ChartOptions<'bar'>} />
                             );
                         case 'pie':
                             return (
                                 <Pie
                                     ref={(ref) => (chartRefs.current[chart.id] = ref?.canvas ?? null)}
-                                    data={chart.data}
-                                    options={options}
-                                />
+                                    data={chartData}
+                                    options={options as ChartOptions<'pie'>} />
                             );
                         case 'doughnut':
                             return (
                                 <Doughnut
                                     ref={(ref) => (chartRefs.current[chart.id] = ref?.canvas ?? null)}
-                                    data={chart.data}
-                                    options={options}
-                                />
+                                    data={chartData}
+                                    options={options as ChartOptions<'doughnut'>} />
                             );
-                        case 'histogram': {
+                        case 'histogram':
                             const binSize = 5;
                             const bins = createBins(chart.data.datasets[0].data, binSize);
-                            const labels = bins.map((_, i) => `${i * binSize}-${(i + 1) * binSize}`);
-
                             const histogramData = {
-                                labels: labels,
+                                labels: bins.map((_, i) => `${i * binSize}-${(i + 1) * binSize}`),
                                 datasets: [
                                     {
                                         label: chart.data.datasets[0].label || 'Частота',
                                         data: bins,
-                                        backgroundColor: chart.data.datasets[0].backgroundColor || 'rgba(153, 102, 255, 0.2)',
-                                        borderColor: 'rgba(153, 102, 255, 1)',
-                                        borderWidth: 1,
+                                        backgroundColor: barColors,
+                                        borderColor: barBorderColors,
+                                        borderWidth: barBorderWidth,
                                     },
                                 ],
                             };
-
                             return (
                                 <Bar
                                     ref={(ref) => (chartRefs.current[chart.id] = ref?.canvas ?? null)}
                                     data={histogramData}
-                                    options={options}
-                                />
+                                    options={options as ChartOptions<'bar'>} />
                             );
-                        }
                         default:
                             return null;
                     }
@@ -432,6 +626,62 @@ const Dashboard: React.FC = () => {
         }
     };
 
+    const handleDownload = async () => {
+        try {
+            const response = await fetch('http://localhost:8080/api/download/styles', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/pdf',
+                },
+            });
+            if (!response.ok) {
+                throw new Error('Ошибка при загрузке файла');
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'DashboardChartStyles.css';
+            link.click();
+
+            window.URL.revokeObjectURL(url); 
+        } catch (error) {
+            console.error('Ошибка при скачивании файла:', error);
+        }
+    };
+
+    const handleButtonClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const loadCSSFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            if (customStyle) {
+                document.head.removeChild(customStyle);
+            }
+
+            const newStyle = document.createElement('style');
+            newStyle.innerHTML = e.target?.result as string;
+            document.head.appendChild(newStyle);
+            setCustomStyle(newStyle);
+            console.log("CSS файл успешно загружен и применен.");
+            toast.success('CSS файл успешно загружен и применен');
+        };
+
+        reader.onerror = () => {
+            console.error("Ошибка при чтении CSS файла");
+            toast.warn('Ошибка при чтении CSS файла');
+        };
+
+        reader.readAsText(file);
+    };
+
     return (
         <div
             className={styles.appContainer}
@@ -449,16 +699,23 @@ const Dashboard: React.FC = () => {
                     <div
                         key={chart.id}
                         id={chart.id}
-                        className={`${styles.chartCard} dashboard`}
+                        className="chartCard dashboard"
                         data-grid={{ x: 0, y: index * 2, w: 6, h: 7 }}
                         onContextMenu={(e) => handleChartContextMenu(e, chart.id)}
                     >
                         <div className={`${styles.dragHandle} drag-icon`}>
                             <DragIndicatorIcon />
                         </div>
-                        <div className={styles.ChartName}>{chart.name}</div>
-                        {renderChart(chart)}
-                        <div className={`${styles.moreVertIcon} more-vert-icon`} onMouseDown={(e) => { setIsModalContext(true); handleChartContextMenu(e, chart.id) }}>
+                        <div className="ChartName">{chart.name}</div>
+                        <div className="chart-container">
+                            <div className="chart">{renderChart(chart)}</div>
+                        </div>
+                        <div className={`${styles.moreVertIcon} more-vert-icon`} onMouseDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setIsModalContext(true);
+                            handleChartContextMenu(e, chart.id);
+                        }}>
                             <MoreVertIcon />
                         </div>
                     </div>
@@ -478,78 +735,101 @@ const Dashboard: React.FC = () => {
                 >
                     Экспортировать дашборд
                 </button>
+                <button
+                    className={styles.addWidgetButton}
+                    onClick={() => handleDownload()}
+                >
+                    Скачать шаблон стилей
+                </button>
+                <div>
+
+                    <button className={styles.addWidgetButton} onClick={handleButtonClick}>Загрузить CSS файл</button>
+                    <input
+                        type="file"
+                        accept=".css"
+                        ref={fileInputRef}
+                        onChange={loadCSSFile}
+                        style={{ display: 'none' }}
+                    />
+                </div>
             </div>
-            {contextMenu && (
-                <div
-                    className={styles.contextMenu}
-                    style={{
-                        position: 'absolute',
-                        top: contextMenu.y,
-                        left: contextMenu.x,
-                        backgroundColor: 'white',
-                        border: '1px solid #ccc',
-                        borderRadius: '4px',
-                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
-                    }}
-                    onMouseLeave={() => setContextMenu(null)}
-                >
-                </div>
-            )}
-
-            {pasteMenu && (
-                <div
-                    className={styles.contextMenu}
-                    style={{
-                        position: 'absolute',
-                        top: pasteMenu.y,
-                        left: pasteMenu.x,
-                        backgroundColor: 'white',
-                        border: '1px solid #ccc',
-                        borderRadius: '4px',
-                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
-                    }}
-                    onMouseLeave={() => setPasteMenu(null)}
-                >
-                    <button className={styles.menuButton} onClick={handlePaste}>Вставить</button>
-                </div>
-            )}
-
-            {contextMenuDaschboard && (
-                <Modal
-                    open={isModalContext}
-                    BackdropProps={{
-                        style: { backgroundColor: 'transparent' },
-                    }}
-                    onClose={() => setIsModalContext(false)}
-                >
+            {
+                contextMenu && (
                     <div
-                        className={styles.modalContentDashboard}
+                        className={styles.contextMenu}
                         style={{
                             position: 'absolute',
-                            top: contextMenuDaschboard.y,
-                            left: contextMenuDaschboard.x,
+                            top: contextMenu.y,
+                            left: contextMenu.x,
+                            backgroundColor: 'white',
+                            border: '1px solid #ccc',
+                            borderRadius: '4px',
+                            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
                         }}
+                        onMouseLeave={() => setContextMenu(null)}
                     >
-                        <div className={styles.widgetMenu}>
-                            <button
-                                className={styles.menuButton}
-                                onClick={(e) => handleCopyClick(e, contextMenuDaschboard.chartId)}
-                            >
-                                Копировать
-                            </button>
-                            <button
-                                className={styles.menuButton}
-                                onClick={() => handleEditClick(contextMenuDaschboard.chartId)}
-                            >
-                                Изменить
-                            </button>
-                            <button className={styles.menuButton} onClick={() => exportChartsToDOCX(contextMenuDaschboard.chartId)}>Экспортировать в docx</button>
-                            <button className={styles.menuButton} onClick={() => exportChartsToPDF(contextMenuDaschboard.chartId)}>Экспортировать в PDF</button>
-                            <button className={styles.menuButton} onClick={() => exportChartsToPPTX(contextMenuDaschboard.chartId)}>Экспортировать в pptx</button>
-                        </div>
                     </div>
-                </Modal>
-            )}
+                )
+            }
+
+            {
+                pasteMenu && (
+                    <div
+                        className={styles.contextMenu}
+                        style={{
+                            position: 'absolute',
+                            top: pasteMenu.y,
+                            left: pasteMenu.x,
+                            backgroundColor: 'white',
+                            border: '1px solid #ccc',
+                            borderRadius: '4px',
+                            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+                        }}
+                        onMouseLeave={() => setPasteMenu(null)}
+                    >
+                        <button className={styles.menuButton} onClick={handlePaste}>Вставить</button>
+                    </div>
+                )
+            }
+
+            {
+                contextMenuDaschboard && (
+                    <Modal
+                        open={isModalContext}
+                        BackdropProps={{
+                            style: { backgroundColor: 'transparent' },
+                        }}
+                        onClose={() => setIsModalContext(false)}
+                    >
+                        <div
+                            className={styles.modalContentDashboard}
+                            style={{
+                                position: 'absolute',
+                                top: contextMenuDaschboard.y,
+                                left: contextMenuDaschboard.x,
+                            }}
+                        >
+                            <div className={styles.widgetMenu}>
+                                <button
+                                    className={styles.menuButton}
+                                    onClick={(e) => handleCopyClick(e, contextMenuDaschboard.chartId)}
+                                >
+                                    Копировать
+                                </button>
+                                <button
+                                    className={styles.menuButton}
+                                    onClick={() => handleEditClick(contextMenuDaschboard.chartId)}
+                                >
+                                    Изменить
+                                </button>
+                                <button className={styles.menuButton} onClick={() => exportChartsToDOCX(contextMenuDaschboard.chartId)}>Экспортировать в docx</button>
+                                <button className={styles.menuButton} onClick={() => exportChartsToPDF(contextMenuDaschboard.chartId)}>Экспортировать в PDF</button>
+                                <button className={styles.menuButton} onClick={() => exportChartsToPPTX(contextMenuDaschboard.chartId)}>Экспортировать в pptx</button>
+                            </div>
+                        </div>
+                    </Modal>
+                )
+            }
 
 
             <Modal open={isModalOpen} BackdropProps={{
@@ -626,7 +906,11 @@ const Dashboard: React.FC = () => {
                     <label>Имя таблицы:</label>
                     <select value={tableName} onChange={(e) => setTableName(e.target.value)}>
                         <option value="">Выберите таблицу</option>
-                        <option value="table1">Таблица 1</option>
+                        {tables.map((table: Table) => (
+                            <option key={table.user_id} value={table.table_name}>
+                                {table.table_name}
+                            </option>
+                        ))}
                     </select>
 
                     <label>Имя столбца:</label>
@@ -651,7 +935,7 @@ const Dashboard: React.FC = () => {
             </Modal>
 
             <ToastContainer position="top-right" autoClose={5000} hideProgressBar closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
-        </div>
+        </div >
     );
 };
 
