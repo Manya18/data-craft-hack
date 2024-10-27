@@ -68,38 +68,16 @@ const SortModal = ({
           <option value="asc">По возрастанию</option>
         </select>
         <button
+        className="primary-button"
           onClick={() => {
             setIsSortModal(false);
           }}
         >
           Закрыть
         </button>
-        {/* <button onClick={resetFilters}>Сбросить фильтр</button> */}
       </div>
     </div>
 
-  //   <div className={styles.modalOverlay}>
-  //     <div className={styles.modal}>
-  //       <h2>Сортировка</h2>
-  //       <div>
-  //         {columns.map((column) => (
-  //           <div key={column}>
-  //             <span>{column}</span>
-  //             <select
-  //               onChange={(e) => handleSortChange(e, column.toLowerCase())}
-  //               value={sortConfig.key === column.toLowerCase() ? sortConfig.direction : ''}
-  //             >
-  //               <option value="">Выберите сортировку</option>
-  //               <option value="ascending">По возрастанию</option>
-  //               <option value="descending">По убыванию</option>
-  //             </select>
-  //           </div>
-  //         ))}
-  //       </div>
-  //       <button onClick={resetSorting}>Сбросить сортировку</button>
-  //       <button onClick={closeSortModal}>Закрыть</button>
-  //     </div>
-  //   </div>
   );
 };
 

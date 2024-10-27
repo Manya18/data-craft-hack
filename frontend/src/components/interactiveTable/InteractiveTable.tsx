@@ -183,6 +183,7 @@ const InteractiveTable = () => {
           <button className="outlined-button" onClick={openHideColumnsModal}>Скрыть столбцы</button>
           <button className="outlined-button" onClick={() => { setIsSortModal(true) }}>Сортировка</button>
           <button className="outlined-button" onClick={() => { addRow() }}>Добавить строку</button>
+          <button className="outlined-button" onClick={() => { setIsAddColumnModal(true) }}>Добавить столбец с формулой</button>
         </div>
         <div className={styles.right}>
           <button className="primary-button" >Отмена</button>
