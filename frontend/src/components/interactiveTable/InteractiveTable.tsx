@@ -4,6 +4,7 @@ import FiltersModal from "../modals/filtersModal/FiltersModal";
 import SortModal from "../modals/sortModal/sortModal";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import TableHeadCell from "./TableHeadSell";
 // import SortModal from "../modals/filtersModal/SortModal";
 
 interface EditableCell {
@@ -11,9 +12,15 @@ interface EditableCell {
   col: string;
 }
 
+interface columnsType {
+    column_name: string,
+    data_type: string
+}
+
 const InteractiveTable = () => {
   const [rows, setRows] = useState<Record<string, any>[]>([]);
   const [columns, setColumns] = useState<string[]>([]);
+  const [columnsType, setColumnsType] = useState<columnsType[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -65,7 +72,20 @@ const InteractiveTable = () => {
         setLoading(false);
       }
     };
+
+    const fetchColumns = async () => {
+        try {
+          const response = await fetch(
+            `http://localhost:8080/api/columnsType?table=${tableTitle}`
+          );
+          const data = await response.json();
+          setColumnsType(data)
+        } catch (error) {
+          console.error("Ошибка при получении данных:", error);
+        }
+      };
     fetchData();
+    fetchColumns();
   }, [currentPage, filters, orderBy, sortOrder]);
   
   const handleDoubleClick = (rowIndex: number, col: string, value: string) => {
@@ -133,42 +153,26 @@ const InteractiveTable = () => {
     setIsHideColumnsModalOpen(true);
   };
 
-  const handleUpdateColumnType = async (col: string) => {
-    try {
-      const responce = await fetch("http://localhost:8080/api/type", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ table_name: tableTitle, column_name: col, new_column_type: dataType }),
-      });
-      if (!responce.ok) toast.error('Невозможно конвертировать в данный тип');
-      setDataType("");
-    } catch (e) {
-      console.error(e);
-    }
-  };
   return (
     <div className={styles.interactiveTable}>
-      <button onClick={() => { setIsFilterModal(true) }}>Фильтрация</button>
-      <button onClick={() => openHideColumnsModal()}>Скрыть столбцы</button>
-      <button onClick={() => { setIsSortModal(true) }}>Сортировка</button>
-      <button onClick={() => { setIsAddRowModal(true) }}>Добавить строку</button>
+        <div className={styles.buttonGroup}>
+            <div className={styles.left}>
+                <button className="outlined-button" onClick={() => { setIsFilterModal(true) }}>Фильтрация</button>
+                <button className="outlined-button" onClick={() => openHideColumnsModal()}>Скрыть столбцы</button>
+                <button className="outlined-button" onClick={() => { setIsSortModal(true) }}>Сортировка</button>
+                <button className="outlined-button" onClick={() => { setIsAddRowModal(true) }}>Добавить строку</button>
+            </div>
+            <div className={styles.right}>
+                <button className="primary-button" >Отмена</button>
+                <button className="primary-button"  onClick={() => { saveChanges() }}>Сохранить</button>
+            </div>
+        </div>
       <div className={styles.tableWrapper}>
-        <table>
+        <table className={styles.table}>
           <thead>
             <tr>
-              {columns.map((col, index) => (
-                <td key={index}>
-                  <div>  {col}</div>
-                  <select value={dataType} onChange={(e) => setDataType(e.target.value)}>
-                    <option value="">{dataType}</option>
-                    <option value="numeric">Числовой</option>
-                    <option value="text">Текст</option>
-                    <option value="date">Дата</option>
-                  </select>
-                  <button onClick={() => handleUpdateColumnType(col)}>Изменить тип</button>
-                </td>
+              {columnsType.map((col, index) => (
+                <TableHeadCell key={index} col={col} tableName={tableTitle}></TableHeadCell>
               ))}
             </tr>
           </thead>
@@ -205,8 +209,9 @@ const InteractiveTable = () => {
             ))}
           </tbody>
         </table>
-        <div>
+        <div className={styles.pagination}>
           <button
+            className="primary-button"
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
           >
@@ -217,6 +222,7 @@ const InteractiveTable = () => {
             Страница {currentPage} из {totalPages}{" "}
           </span>
           <button
+          className="primary-button"
             onClick={() =>
               setCurrentPage((prev) => Math.min(prev + 1, totalPages))
             }
@@ -226,10 +232,7 @@ const InteractiveTable = () => {
           </button>
         </div>
       </div>
-      <div className={styles.actionButtons}>
-        <button className={styles.button}>Отмена</button>
-        <button className={styles.button} onClick={() => { saveChanges() }}>Сохранить</button>
-      </div>
+      
       {/* Модальное окно для скрытия столбцов */}
       {/* {isHideColumnModal && (
                 <div className={styles.modalOverlay}>

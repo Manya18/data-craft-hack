@@ -26,6 +26,9 @@ module.exports = (tableController) => {
     router.get('/columnDistinct', (req, res) => {
         tableController.getDistinct(req, res);
     });
+    router.get('/columnsType', (req, res) => {
+        tableController.getColumnsTypes(req, res);
+    });
     router.put('/row', (req, res) => {
         tableController.addRow(req, res);
     });

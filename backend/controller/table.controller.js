@@ -90,6 +90,25 @@ class TableController {
         }
     }
 
+    async getColumnsTypes(req, res) {
+        const table = req.query.table;
+
+        const client = await this.db.connect();
+
+        try {
+            const result = await client.query(
+                `SELECT column_name, data_type
+                FROM information_schema.columns
+                WHERE table_name = $1;`, [table]
+            );
+            res.status(200).json(result.rows);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            client.release();
+        }
+    }
+
     async updateTableName(req, res) {
         const { old_table_name, new_table_name } = req.body;
         const client = await this.db.connect();
