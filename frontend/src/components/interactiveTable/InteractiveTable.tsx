@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import styles from "./interactiveTable.module.css";
 import FiltersModal from "../modals/filtersModal/FiltersModal";
+import SortModal from "../modals/sortModal/sortModal";
 
 interface EditableCell {
   rowIndex: number | null;
@@ -28,6 +29,9 @@ const InteractiveTable = () => {
 
   const [filters, setFilters] = useState({column: '', value: ''});
 
+  const [sortOrder, setSortOrder] = useState<string>('');
+  const [orderBy, setOrderBy] = useState<string>('');
+
 function getParameterFromUrl() {
     const url = window.location.href;
     const urlParts = url.split('/');
@@ -44,8 +48,9 @@ function getParameterFromUrl() {
         const filters_str = JSON.stringify(filters);
         console.log(filters_str)
         const response = await fetch(
-            `http://localhost:8080/api/table?table=${tableTitle}${filters.column ? ('&filters=['+ JSON.stringify(filters) + ']'): ''}&page=${currentPage}`
+            `http://localhost:8080/api/table?table=${tableTitle}${filters.column ? ('&filters=['+ JSON.stringify(filters) + ']'): ''}&page=${currentPage}${sortOrder ? ('&sortOrder=' + sortOrder) : ''}${orderBy ? ('&sortBy=' + orderBy) : ''}`
         );
+        console.log(orderBy, sortOrder);
         const data = await response.json();
         setRows(data.data);
         setColumns(Object.keys(data.data[0]));
@@ -57,7 +62,7 @@ function getParameterFromUrl() {
       }
     };
     fetchData();
-  }, [currentPage, filters]);
+  }, [currentPage, filters, orderBy, sortOrder]);
   
 //   /api/table?table=_11samara_tasks__1&sortBy=Пространство&sortOrder=desc&filters=[{"column":"Приоритет","value":"Средний"},{"column":"Пространство","value":"Москва"}]&page=1&limit=20
   const handleDoubleClick = (rowIndex: number, col: string, value: string) => {
@@ -212,30 +217,9 @@ function getParameterFromUrl() {
             )}
 
             {/* Модальное окно сортировки */}
-            {/* {isSortModal && (
-                <div className={styles.modalOverlay}>
-                    <div className={styles.modal}>
-                        <h2>Сортировка</h2>
-                        <div>
-                            {columns.map((column) => (
-                                <div key={column}>
-                                    <span>{column}</span>
-                                    <select
-                                        onChange={(e) => handleSortChange(e, column.toLowerCase())}
-                                        value={sortConfig.key === column.toLowerCase() ? sortConfig.direction : ''}
-                                    >
-                                        <option value="">Выберите сортировку</option>
-                                        <option value="ascending">По возрастанию</option>
-                                        <option value="descending">По убыванию</option>
-                                    </select>
-                                </div>
-                            ))}
-                        </div>
-                        <button onClick={resetSorting}>Сбросить сортировку</button>
-                        <button onClick={closeSortModal}>Закрыть</button>
-                    </div>
-                </div>
-            )} */}
+            {isSortModal && (
+              <SortModal columns={columns} table={tableTitle} setIsSortModal={setIsSortModal} setSortOrder={setSortOrder} setOrderBy={setOrderBy}></SortModal>
+            )}
 
             {/* Модальное окно для добавления строки */}
             {/* {isAddRowModal && (
