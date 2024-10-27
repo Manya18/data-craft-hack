@@ -41,7 +41,7 @@ module.exports = (tableController) => {
     router.post('/columns', (req, res) => {
         tableController.getColumnsName(req, res);
     });
-    router.get('/uniqcount', (req, res) => {
+    router.post('/uniqcount', (req, res) => {
         tableController.getUniqueCount(req, res);
     });
     return router;
