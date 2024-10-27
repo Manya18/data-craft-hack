@@ -19,56 +19,64 @@ class TableController {
         }
     }
 
+    async getDistinct(req, res) {
+        const { column, table } = req.query;
+        const client = await this.db.connect();
+        try {
+            const tables = await client.query(
+                `SELECT DISTINCT ${column} FROM ${table};`
+            );
+            res.status(201).json(tables.rows);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            client.release();
+        }
+    }
+
     async getTableRows(req, res) {
-        const page = parseInt(req.query.page) || 1; // Текущая страница
-        const limit = parseInt(req.query.limit) || 20; // Количество записей на странице
-        const offset = (page - 1) * limit; // Смещение для пагинации
-        const table = req.query.table; // Название таблицы
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const offset = (page - 1) * limit;
+        const table = req.query.table;
 
-        // Получаем параметры сортировки и фильтрации из запроса
-        const sortBy = req.query.sortBy || 'id'; // По умолчанию сортируем по id
-        const sortOrder = req.query.sortOrder === 'desc' ? 'DESC' : 'ASC'; // По умолчанию по возрастанию
+        const sortBy = req.query.sortBy || 'id';
+        const sortOrder = req.query.sortOrder === 'desc' ? 'DESC' : 'ASC';
 
-        // Получаем параметры фильтрации
-        const filterParams = req.query.filters ? JSON.parse(req.query.filters) : []; // Ожидаем массив объектов { column: 'columnName', value: 'value' }
+        const filterParams = req.query.filters ? JSON.parse(req.query.filters) : [];
 
         try {
-            // Создаем базовый запрос
             let query = `SELECT * FROM ${table}`;
-            const params = []; // Параметры для фильтрации
+            const params = [];
             let filterConditions = [];
 
-            // Добавляем условие фильтрации, если указаны параметры
             if (filterParams.length > 0) {
                 filterConditions = filterParams.map((filter, index) => {
-                    params.push(filter.value); // Добавляем значение фильтрации в массив параметров
-                    return `${filter.column} = $${params.length}`; // Создаем условие для фильтрации
+                    params.push(filter.value);
+                    return `${filter.column} = $${params.length}`;
                 });
-                query += ` WHERE ${filterConditions.join(' AND ')}`; // Объединяем условия с помощью AND
+                query += ` WHERE ${filterConditions.join(' AND ')}`;
             }
 
-            // Добавляем сортировку
             query += ` ORDER BY ${sortBy} ${sortOrder}`;
 
-            // Добавляем пагинацию
             query += ` LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
-            params.push(limit, offset); // Добавляем limit и offset в параметры
+            params.push(limit, offset);
 
             console.log('Executing query:', query);
             console.log('With parameters:', params);
 
             const result = await this.db.query(query, params);
 
-            // Запрос для получения общего количества строк с учетом фильтрации
             let totalCountQuery = `SELECT COUNT(*) FROM ${table}`;
             if (filterParams.length > 0) {
                 const totalFilterConditions = filterParams.map((filter, index) => {
-                    return `${filter.column} = $${index + 1}`; // Используем правильный индекс для подсчета
+                    return `${filter.column} = $${index + 1}`;
                 });
                 totalCountQuery += ` WHERE ${totalFilterConditions.join(' AND ')}`;
             }
 
-            const totalCountResult = await this.db.query(totalCountQuery, params.slice(0, filterParams.length)); // Передаем только параметры фильтрации
+            const totalCountResult = await this.db.query(totalCountQuery, params.slice(0, filterParams.length));
             const totalCount = parseInt(totalCountResult.rows[0].count);
 
             res.json({
@@ -198,28 +206,33 @@ class TableController {
         }
     }
 
-    async addRow(req, res) {
-        const { table_name } = req.body;
-        const client = await this.db.connect();
+    // async addRow(req, res) {
+    //     const { table_name } = req.body;
+    //     const client = await this.db.connect();
 
-        try {
-            const newRow = await client.query(`INSERT INTO ${table_name} DEFAULT VALUES RETURNING id;`);
-            res.send(`Новая строка ${newRow.rows[0].id}`);
-        } catch (err) {
-            console.error('Ошибка при добавлении строки', err);
-            res.status(500).json({ error: 'Не удалось добавить строку. Попробуйте позже' });
-        } finally {
-            client.release();
-        }
-    }
+    //     try {
+    //         const newRow = await client.query(`INSERT INTO ${table_name} DEFAULT VALUES RETURNING id;`);
+    //         res.send(`Новая строка ${newRow.rows[0].id}`);
+    //     } catch (err) {
+    //         console.error('Ошибка при добавлении строки', err);
+    //         res.status(500).json({ error: 'Не удалось добавить строку. Попробуйте позже' });
+    //     } finally {
+    //         client.release();
+    //     }
+    // }
 
     async updateCell(req, res) {
-        const { table_name, column_name, row_id, new_value } = req.body;
+        const {changes, table_name} = req.body;
         const client = await this.db.connect();
-
+        console.log(changes)
         try {
-            await client.query(`UPDATE ${table_name} SET ${column_name}=$1 WHERE id=$2`, [new_value, row_id]);
-            res.send(`Ячейка ${column_name} ${row_id} обновлена`);
+            for (const [key, change] of Object.entries(changes)) {
+                const { column, newValue } = change; // Извлекаем нужные значения
+                console.log(table_name)
+                const rowId = key.split('-')[0]; // Получаем ID строки из ключа (например, '6-Статус' -> '6')
+                // Выполняем запрос на обновление
+                await client.query(`UPDATE ${table_name} SET ${column} = $1 WHERE id = $2`, [newValue, rowId]);
+            }
         } catch (err) {
             console.error('Ошибка при обновлении ячейки', err);
             if (err.code === '42P01') {

@@ -1,0 +1,29 @@
+.interactiveTable{
+    position: relative;
+}
+
+.interactiveTable th, .interactiveTable td {
+    border: 1px solid var(--border-color);
+    padding: 8px;
+    text-align: left;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  .interactiveTable td {
+    height: 50px;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  
+  .interactiveTable input {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+.actionButtons{
+    position: fixed;
+    bottom: 0;
+}
