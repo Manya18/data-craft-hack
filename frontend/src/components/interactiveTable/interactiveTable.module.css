@@ -20,31 +20,68 @@
 }
 
 .interactiveTable input {
-  width: 100%;
   box-sizing: border-box;
 }
 
-.tableWrapper{
-    overflow-x: scroll;
+.tableWrapper {
+  overflow-x: scroll;
 }
+
 .buttonGroup {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
   margin: 10px;
-  & .left{
+
+  & .left {
     display: flex;
     align-items: center;
     gap: 10px;
   }
-  & .right{
+
+  & .right {
     display: flex;
     align-items: center;
     gap: 10px;
   }
 }
-.pagination{
-    text-align: center;
-    margin: 10px 0;
+
+.pagination {
+  text-align: center;
+  margin: 10px 0;
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  overflow-y: scroll;
+  height: 50%;
+  gap: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.labels {
+  display: flex;
+  flex-direction: row;
 }

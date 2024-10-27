@@ -326,7 +326,6 @@ class TableController {
             client.release();
         }
     }
-
 }
 
 module.exports = TableController;

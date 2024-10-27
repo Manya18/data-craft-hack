@@ -5,7 +5,6 @@ import SortModal from "../modals/sortModal/sortModal";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import TableHeadCell from "./TableHeadSell";
-// import SortModal from "../modals/filtersModal/SortModal";
 
 interface EditableCell {
   rowIndex: number | null;
@@ -13,8 +12,8 @@ interface EditableCell {
 }
 
 interface columnsType {
-    column_name: string,
-    data_type: string
+  column_name: string,
+  data_type: string
 }
 
 const InteractiveTable = () => {
@@ -58,7 +57,7 @@ const InteractiveTable = () => {
       try {
         setLoading(true);
         const response = await fetch(
-            `http://localhost:8080/api/table?table=${tableTitle}${filters.column ? ('&filters=['+ JSON.stringify(filters) + ']'): ''}&page=${currentPage}${sortOrder ? ('&sortOrder=' + sortOrder) : ''}${orderBy ? ('&sortBy=' + orderBy) : ''}`
+          `http://localhost:8080/api/table?table=${tableTitle}${filters.column ? ('&filters=[' + JSON.stringify(filters) + ']') : ''}&page=${currentPage}${sortOrder ? ('&sortOrder=' + sortOrder) : ''}${orderBy ? ('&sortBy=' + orderBy) : ''}`
 
         );
         console.log(orderBy, sortOrder);
@@ -74,20 +73,20 @@ const InteractiveTable = () => {
     };
 
     const fetchColumns = async () => {
-        try {
-          const response = await fetch(
-            `http://localhost:8080/api/columnsType?table=${tableTitle}`
-          );
-          const data = await response.json();
-          setColumnsType(data)
-        } catch (error) {
-          console.error("Ошибка при получении данных:", error);
-        }
-      };
+      try {
+        const response = await fetch(
+          `http://localhost:8080/api/columnsType?table=${tableTitle}`
+        );
+        const data = await response.json();
+        setColumnsType(data)
+      } catch (error) {
+        console.error("Ошибка при получении данных:", error);
+      }
+    };
     fetchData();
     fetchColumns();
   }, [currentPage, filters, orderBy, sortOrder]);
-  
+
   const handleDoubleClick = (rowIndex: number, col: string, value: string) => {
     setEditableCell({ rowIndex, col });
     setNewValue(value);
@@ -138,6 +137,9 @@ const InteractiveTable = () => {
       console.error(e);
     }
   }
+  const openHideColumnsModal = () => {
+    setIsHideColumnsModalOpen(true);
+  };
 
   const handleCheckboxChange = (e: any, column: string) => {
     if (e.target.checked) {
@@ -149,24 +151,21 @@ const InteractiveTable = () => {
   const closeHideColumnsModal = () => {
     setIsHideColumnsModalOpen(false);
   };
-  const openHideColumnsModal = () => {
-    setIsHideColumnsModalOpen(true);
-  };
 
   return (
     <div className={styles.interactiveTable}>
-        <div className={styles.buttonGroup}>
-            <div className={styles.left}>
-                <button className="outlined-button" onClick={() => { setIsFilterModal(true) }}>Фильтрация</button>
-                <button className="outlined-button" onClick={() => openHideColumnsModal()}>Скрыть столбцы</button>
-                <button className="outlined-button" onClick={() => { setIsSortModal(true) }}>Сортировка</button>
-                <button className="outlined-button" onClick={() => { setIsAddRowModal(true) }}>Добавить строку</button>
-            </div>
-            <div className={styles.right}>
-                <button className="primary-button" >Отмена</button>
-                <button className="primary-button"  onClick={() => { saveChanges() }}>Сохранить</button>
-            </div>
+      <div className={styles.buttonGroup}>
+        <div className={styles.left}>
+          <button className="outlined-button" onClick={() => { setIsFilterModal(true) }}>Фильтрация</button>
+          <button className="outlined-button" onClick={openHideColumnsModal}>Скрыть столбцы</button>
+          <button className="outlined-button" onClick={() => { setIsSortModal(true) }}>Сортировка</button>
+          <button className="outlined-button" onClick={() => { setIsAddRowModal(true) }}>Добавить строку</button>
         </div>
+        <div className={styles.right}>
+          <button className="primary-button" >Отмена</button>
+          <button className="primary-button" onClick={() => { saveChanges() }}>Сохранить</button>
+        </div>
+      </div>
       <div className={styles.tableWrapper}>
         <table className={styles.table}>
           <thead>
@@ -180,30 +179,32 @@ const InteractiveTable = () => {
             {rows.map((row, index) => (
               <tr key={(row as any).id}>
                 {columns.map((col, colIndex) => (
-                  <td
-                    key={colIndex}
-                    onDoubleClick={() =>
-                      handleDoubleClick((row as any).id, col, row[col])
-                    }
-                  >
-                    {editableCell.rowIndex === (row as any).id &&
-                      editableCell.col === col ? (
-                      <input
-                        type="text"
-                        value={newValue}
-                        onChange={(e) => setNewValue(e.target.value)}
-                        onBlur={handleBlur}
-                        onKeyPress={(e) => {
-                          if (e.key === "Enter") {
-                            handleBlur();
-                          }
-                        }}
-                        autoFocus
-                      />
-                    ) : (
-                      row[col]
-                    )}
-                  </td>
+                  !hiddenColumns.includes(col) && (
+
+                    <td
+                      key={colIndex}
+                      onDoubleClick={() =>
+                        handleDoubleClick((row as any).id, col, row[col])
+                      }
+                    >
+                      {editableCell.rowIndex === (row as any).id &&
+                        editableCell.col === col ? (
+                        <input
+                          type="text"
+                          value={newValue}
+                          onChange={(e) => setNewValue(e.target.value)}
+                          onBlur={handleBlur}
+                          onKeyPress={(e) => {
+                            if (e.key === "Enter") {
+                              handleBlur();
+                            }
+                          }}
+                          autoFocus
+                        />
+                      ) : (
+                        row[col]
+                      )}
+                    </td>)
                 ))}
               </tr>
             ))}
@@ -222,7 +223,7 @@ const InteractiveTable = () => {
             Страница {currentPage} из {totalPages}{" "}
           </span>
           <button
-          className="primary-button"
+            className="primary-button"
             onClick={() =>
               setCurrentPage((prev) => Math.min(prev + 1, totalPages))
             }
@@ -232,65 +233,37 @@ const InteractiveTable = () => {
           </button>
         </div>
       </div>
-      
-      {/* Модальное окно для скрытия столбцов */}
-      {/* {isHideColumnModal && (
-                <div className={styles.modalOverlay}>
-                    <div className={styles.modal}>
-                        <h2>Скрыть столбцы</h2>
-                        {columns.map(column => (
-                            <div key={column}>
-                                <label>
-                                    <input
-                                        type="checkbox"
-                                        checked={!hiddenColumns.includes(column)}
-                                        onChange={(e) => handleCheckboxChange(e, column)}
-                                    />
-                                    {column}
-                                </label>
-                            </div>
-                        ))}
-                        <button onClick={closeHideColumnsModal}>Закрыть</button>
-                    </div>
-                </div>
-            )} */}
 
       {/* Модальное окно для фильтрации */}
       {isFilterModal && (
         <FiltersModal columns={columns} table={tableTitle} setIsFilterModal={setIsFilterModal} setFilters={setFilters}></FiltersModal>
       )}
       {/* 
-{isSortModal && (
-        <SortModal columns={columns} table={tableTitle} setIsSortModal={setIsSortModal} setModal={setModals}></SortModal>
-      )} */}
-            {/* Модальное окно сортировки */}
-            {isSortModal && (
-              <SortModal columns={columns} table={tableTitle} setIsSortModal={setIsSortModal} setSortOrder={setSortOrder} setOrderBy={setOrderBy}></SortModal>
-            )}
 
+      {/* Модальное окно сортировки */}
+      {isSortModal && (
+        <SortModal columns={columns} table={tableTitle} setIsSortModal={setIsSortModal} setSortOrder={setSortOrder} setOrderBy={setOrderBy}></SortModal>
+      )}
 
-      {/* Модальное окно для добавления строки */}
-      {/* {isAddRowModal && (
-                <div className={styles.modalOverlay}>
-                    <div className={styles.modal}>
-                        <h2>Добавить новую строку</h2>
-                        <div className={styles.modalInput}>
-                            {columns.map((column) => (
-                                <div key={column} className={styles.modalInput}>
-                                    <label>{column}</label>
-                                    <input
-                                        type="text"
-                                        value={newRowData[column.toLowerCase()] || ''}
-                                        onChange={(e) => handleNewRowDataChange(column, e.target.value)}
-                                    />
-                                </div>
-                            ))}
-                        </div>
-                        <button onClick={addRow}>{t(`table.add`)}</button>
-                        <button onClick={closeAddRowModal}>Закрыть</button>
-                    </div>
-                </div>
-            )} */}
+      {/* Модальное окно для скрытия строк */}
+      {isHideColumnsModalOpen && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal}>
+            <h3>Скрыть столбцы</h3>
+            {columns.map(column => (
+              <div key={column} className={styles.labels}>
+                <input
+                  type="checkbox"
+                  checked={!hiddenColumns.includes(column)}
+                  onChange={(e) => handleCheckboxChange(e, column)}
+                />
+                {column}
+              </div>
+            ))}
+            <button className="primary-button" onClick={closeHideColumnsModal}>Закрыть</button>
+          </div>
+        </div>
+      )}
       <ToastContainer />
 
     </div>
