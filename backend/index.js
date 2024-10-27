@@ -19,7 +19,7 @@ const pool = new Pool({
     user: 'postgres',
     host: 'localhost',
     database: 'datacraft_samara',
-    password: '1234',
+    password: 'postgres',
     port: 5432
 });
 

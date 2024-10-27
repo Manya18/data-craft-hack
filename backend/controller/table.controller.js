@@ -26,7 +26,7 @@ class TableController {
             const result = await client.query(
                 `SELECT DISTINCT ${column} FROM ${table};`
             );
-            const valuesArray = result.rows.map(row => row[column]); // row[column] - доступ к значению по имени столбца
+            const valuesArray = result.rows.map(row => row[column]);
 
             res.status(200).json(valuesArray);
         } catch (error) {
@@ -64,9 +64,6 @@ class TableController {
 
             query += ` LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
             params.push(limit, offset);
-
-            console.log('Executing query:', query);
-            console.log('With parameters:', params);
 
             const result = await this.db.query(query, params);
 
@@ -208,31 +205,15 @@ class TableController {
         }
     }
 
-    // async addRow(req, res) {
-    //     const { table_name } = req.body;
-    //     const client = await this.db.connect();
-
-    //     try {
-    //         const newRow = await client.query(`INSERT INTO ${table_name} DEFAULT VALUES RETURNING id;`);
-    //         res.send(`Новая строка ${newRow.rows[0].id}`);
-    //     } catch (err) {
-    //         console.error('Ошибка при добавлении строки', err);
-    //         res.status(500).json({ error: 'Не удалось добавить строку. Попробуйте позже' });
-    //     } finally {
-    //         client.release();
-    //     }
-    // }
-
     async updateCell(req, res) {
-        const {changes, table_name} = req.body;
+        const { changes, table_name } = req.body;
         const client = await this.db.connect();
         console.log(changes)
         try {
             for (const [key, change] of Object.entries(changes)) {
-                const { column, newValue } = change; // Извлекаем нужные значения
+                const { column, newValue } = change;
                 console.log(table_name)
-                const rowId = key.split('-')[0]; // Получаем ID строки из ключа (например, '6-Статус' -> '6')
-                // Выполняем запрос на обновление
+                const rowId = key.split('-')[0];
                 await client.query(`UPDATE ${table_name} SET ${column} = $1 WHERE id = $2`, [newValue, rowId]);
             }
         } catch (err) {
@@ -263,6 +244,34 @@ class TableController {
             client.release();
         }
     }
+
+    async getColumnsName(req, res) {
+        const { table_name } = req.body;
+        const client = await this.db.connect();
+
+        try {
+            const result = await client.query(`
+            SELECT column_name
+            FROM information_schema.columns
+            WHERE table_name = $1;`, [table_name]);
+
+            if (result.rows.length > 0) {
+                const columns = result.rows.map(row => row.column_name);
+                res.status(200).json(columns);
+            } else {
+                res.status(404).json({ message: 'Таблица не найдена' });
+            }
+        } catch (err) {
+            console.error('Ошибка при получении столбцов', err);
+            res.status(500).json({ error: 'Не удалось найти столбцы. Попробуйте позже' });
+        } finally {
+            client.release();
+        }
+    }
+
+    // async getNumberColumns(req, res) {
+    //     const {table_name}
+    // }
 }
 
 module.exports = TableController;
