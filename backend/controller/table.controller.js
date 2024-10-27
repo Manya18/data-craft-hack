@@ -23,10 +23,12 @@ class TableController {
         const { column, table } = req.query;
         const client = await this.db.connect();
         try {
-            const tables = await client.query(
+            const result = await client.query(
                 `SELECT DISTINCT ${column} FROM ${table};`
             );
-            res.status(201).json(tables.rows);
+            const valuesArray = result.rows.map(row => row[column]); // row[column] - доступ к значению по имени столбца
+
+            res.status(200).json(valuesArray);
         } catch (error) {
             console.error(error);
         } finally {

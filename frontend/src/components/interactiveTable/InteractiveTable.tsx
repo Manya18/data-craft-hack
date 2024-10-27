@@ -26,14 +26,25 @@ const InteractiveTable = () => {
   const [isSortModal, setIsSortModal] = useState(false);
   const [isAddRowModal, setIsAddRowModal] = useState<boolean>(false);
 
-  const tableTitle = "_11samara_tas_2";
+  const [filters, setFilters] = useState({column: '', value: ''});
+
+function getParameterFromUrl() {
+    const url = window.location.href;
+    const urlParts = url.split('/');
+    const parameter = urlParts[urlParts.length - 1];
+    return parameter;
+  }
+
+  const tableTitle = getParameterFromUrl();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
+        const filters_str = JSON.stringify(filters);
+        console.log(filters_str)
         const response = await fetch(
-          `http://localhost:8080/api/table?table=${tableTitle}&page=${currentPage}`
+            `http://localhost:8080/api/table?table=${tableTitle}${filters.column ? ('&filters=['+ JSON.stringify(filters) + ']'): ''}&page=${currentPage}`
         );
         const data = await response.json();
         setRows(data.data);
@@ -46,8 +57,9 @@ const InteractiveTable = () => {
       }
     };
     fetchData();
-  }, [currentPage]);
-
+  }, [currentPage, filters]);
+  
+//   /api/table?table=_11samara_tasks__1&sortBy=Пространство&sortOrder=desc&filters=[{"column":"Приоритет","value":"Средний"},{"column":"Пространство","value":"Москва"}]&page=1&limit=20
   const handleDoubleClick = (rowIndex: number, col: string, value: string) => {
     setEditableCell({ rowIndex, col });
     setNewValue(value);
@@ -196,7 +208,7 @@ const InteractiveTable = () => {
 
             {/* Модальное окно для фильтрации */}
             {isFilterModal && (
-                <FiltersModal columns={columns} table={tableTitle} setIsFilterModal={setIsFilterModal}></FiltersModal>
+                <FiltersModal columns={columns} table={tableTitle} setIsFilterModal={setIsFilterModal} setFilters={setFilters}></FiltersModal>
             )}
 
             {/* Модальное окно сортировки */}
