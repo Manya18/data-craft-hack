@@ -27,7 +27,7 @@ const InteractiveTable = () => {
     rowIndex: null,
     col: "",
   });
-  const [newValue, setNewValue] = useState("");
+  const [newValue, setNewValue] = useState<string>("");
   const [changes, setChanges] = useState({});
   const [filters, setFilters] = useState({ column: '', value: '' });
 
@@ -35,7 +35,6 @@ const InteractiveTable = () => {
   const [isHideColumnModal, setIsHideColumnModal] = useState(false);
   const [isFilterModal, setIsFilterModal] = useState(false);
   const [isSortModal, setIsSortModal] = useState(false);
-  const [isAddRowModal, setIsAddRowModal] = useState<boolean>(false);
   const [isHideColumnsModalOpen, setIsHideColumnsModalOpen] = useState<boolean>(false);
   const [hiddenColumns, setHiddenColumns] = useState<string[]>([]);
   const [dataType, setDataType] = useState("");
@@ -60,8 +59,8 @@ const InteractiveTable = () => {
           `http://localhost:8080/api/table?table=${tableTitle}${filters.column ? ('&filters=[' + JSON.stringify(filters) + ']') : ''}&page=${currentPage}${sortOrder ? ('&sortOrder=' + sortOrder) : ''}${orderBy ? ('&sortBy=' + orderBy) : ''}`
 
         );
-        console.log(orderBy, sortOrder);
         const data = await response.json();
+        console.log(data.data);
         setRows(data.data);
         setColumns(Object.keys(data.data[0]));
         setTotalPages(data.totalPages);
@@ -94,31 +93,37 @@ const InteractiveTable = () => {
 
   const handleBlur = () => {
     const { rowIndex, col } = editableCell;
-    const oldValue = rows[rowIndex!][col];
     const newValue_1 = newValue;
-
-    if (rowIndex) {
-      const updatedRows = [...rows];
-      updatedRows[rowIndex - 1] = {
-        ...updatedRows[rowIndex - 1],
-        [col]: newValue_1,
-      };
+  
+    console.log('rows', rows);
+  
+    if (rowIndex !== null) {
+      const updatedRows = rows.map(row => {
+        if (row.id === rowIndex) {
+          return {
+            ...row,
+            [col]: newValue_1,
+          };
+        }
+        return row;
+      });
+  
+      console.log('updatedRows', updatedRows);
       setRows(updatedRows);
     }
-
-    const uniqueKey = `${(rows[rowIndex!] as any).id - 1}-${col}`;
-
+  
+    const uniqueKey = `${rowIndex}-${col}`;
+  
     setChanges((prev) => ({
       ...prev,
       [uniqueKey]: {
         column: col,
-        oldValue: oldValue,
         newValue: newValue_1,
       },
     }));
-
+  
     setEditableCell({ rowIndex: null, col: "" });
-    setNewValue("");
+    setNewValue(""); 
   };
 
   const saveChanges = async () => {
@@ -141,6 +146,23 @@ const InteractiveTable = () => {
     setIsHideColumnsModalOpen(true);
   };
 
+  const addRow = async () => {
+    try {
+      await fetch("http://localhost:8080/api/row", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ table_name: tableTitle }),
+      });
+      setOrderBy('id');
+      setSortOrder('desc');
+      setChanges([]);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   const handleCheckboxChange = (e: any, column: string) => {
     if (e.target.checked) {
       setHiddenColumns(hiddenColumns.filter(col => col !== column));
@@ -159,7 +181,7 @@ const InteractiveTable = () => {
           <button className="outlined-button" onClick={() => { setIsFilterModal(true) }}>Фильтрация</button>
           <button className="outlined-button" onClick={openHideColumnsModal}>Скрыть столбцы</button>
           <button className="outlined-button" onClick={() => { setIsSortModal(true) }}>Сортировка</button>
-          <button className="outlined-button" onClick={() => { setIsAddRowModal(true) }}>Добавить строку</button>
+          <button className="outlined-button" onClick={() => { addRow() }}>Добавить строку</button>
         </div>
         <div className={styles.right}>
           <button className="primary-button" >Отмена</button>
