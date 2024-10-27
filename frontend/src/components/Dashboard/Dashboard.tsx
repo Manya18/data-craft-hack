@@ -19,6 +19,7 @@ import PptxGenJS from "pptxgenjs";
 import { ChartOptions } from 'chart.js';
 
 import './DashboardChartStyles.css';
+import FiltersModal from '../modals/filtersModal/FiltersModal';
 
 ChartJS.register(...registerables);
 
@@ -62,8 +63,40 @@ const Dashboard: React.FC = () => {
     const [tables, setTables] = useState<Table[]>([]);
     const [trigger, setTrigger] = useState('');
 
+    const [columns, setColumns] = useState<string[]>([]);
+    const [isFilterModal, setIsFilterModal] = useState(false);
+    const [filters, setFilters] = useState({column: '', value: ''});
+    const [loading, setLoading] = useState(false);
+
+    const [rows, setRows] = useState<Record<string, any>[]>([]);
+
     const user_id = sessionStorage.getItem("userID");
 
+    useEffect(() => {
+        const fetchData = async () => {
+          try {
+            setLoading(true);
+            const filters_str = JSON.stringify(filters);
+            console.log(filters_str)
+            if(tableName){
+                const response = await fetch(
+                    `http://localhost:8080/api/table?table=${tableName}${filters.column ? ('&filters=['+ JSON.stringify(filters) + ']'): ''}`
+                );
+                const data = await response.json();
+                setRows(data.data);
+                setColumns(Object.keys(data.data[0]));
+                console.log(columns)
+                setLoading(false);    
+            }
+          } catch (error) {
+            console.error("Ошибка при получении данных:", error);
+            setLoading(false);
+          }
+        };
+        fetchData();
+      }, [ tableName, filters]);
+
+      
     useEffect(() => {
         const fetchTables = async () => {
             if (user_id) {
@@ -913,13 +946,14 @@ const Dashboard: React.FC = () => {
                         ))}
                     </select>
 
-                    <label>Имя столбца:</label>
+                    {/* <label>Имя столбца:</label>
                     <input
                         type="text"
                         value={columnName}
                         onChange={(e) => setColumnName(e.target.value)}
                         placeholder="Введите имя столбца"
-                    />
+                    /> */}
+                            <FiltersModal columns={columns} table={tableName} setIsFilterModal={setIsFilterModal} setFilters={setFilters}></FiltersModal>
 
                     <label>
                         <input
