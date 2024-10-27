@@ -26,6 +26,9 @@ module.exports = (tableController) => {
     router.get('/columnDistinct', (req, res) => {
         tableController.getDistinct(req, res);
     });
+    router.get('/columnsType', (req, res) => {
+        tableController.getColumnsTypes(req, res);
+    });
     router.put('/row', (req, res) => {
         tableController.addRow(req, res);
     });
@@ -35,7 +38,7 @@ module.exports = (tableController) => {
     router.delete('/row', (req, res) => {
         tableController.removeRow(req, res);
     });
-    router.get('/columns', (req, res) => {
+    router.post('/columns', (req, res) => {
         tableController.getColumnsName(req, res);
     });
     router.post('/uniqcount', (req, res) => {
