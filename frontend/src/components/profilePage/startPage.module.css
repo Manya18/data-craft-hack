@@ -96,13 +96,19 @@ input:focus {
     outline: 2px solid var(--accent);
 }
 
-.authoButton {
+.logoutButton {
     color: #000;
     font-size: 15px;
     background-color: white;
     border: 0px;
     padding: 10px;
     border-radius: 10px;
+    position: sticky;
+    z-index: 2000;
+}
+
+.logoutButton:hover {
+    background-color: #ccc;
 }
 
 .info {
@@ -118,4 +124,17 @@ input:focus {
 .name {
     padding: 5px;
     font-size: 16px;
+}
+
+.loader {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.5em;
+    color: #333;
+    background-color: rgba(255, 255, 255);
+    padding: 1em 2em;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }

@@ -20,6 +20,13 @@ body,
   margin: 0;
 }
 
+html,
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
@@ -101,8 +108,9 @@ option:hover {
   font-weight: 600;
   width: fit-content;
   cursor: pointer;
-  &:hover{
-    background-color: rgba(255, 78, 175, 0.5);
+
+  &:hover {
+    background-color: rgba(67, 78, 175, 0.5);
   }
 }
 

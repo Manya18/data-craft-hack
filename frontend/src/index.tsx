@@ -9,42 +9,55 @@ import Registration from './components/profilePage/Registration';
 import Login from './components/profilePage/Login';
 import StartPage from './components/profilePage/StartPage';
 import InteractiveTable from './components/interactiveTable/InteractiveTable';
+import PrivateRoute from './PrivateRoute';
+
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 
 const router = createBrowserRouter([
-
   {
     path: '/',
     element: <App />,
     children: [
       {
         path: '',
-        element: <Navigate to="tables" />
+        element: <Navigate to="tables" />,
       },
       {
         path: 'tables',
-        element: <TablesList />,
+        element: (
+          <PrivateRoute>
+            <TablesList />
+          </PrivateRoute>
+        ),
       },
       {
         path: 'table/:id',
-        element: <InteractiveTable />,
+        element: (
+          <PrivateRoute>
+            <InteractiveTable />
+          </PrivateRoute>
+        ),
       },
       {
         path: 'analyse',
-        element: <Dashboard />,
-      }
-    ]
+        element: (
+          <PrivateRoute>
+            <Dashboard />
+          </PrivateRoute>
+        ),
+      },
+    ],
   },
   {
     path: '/signin',
-    element: <StartPage/>,
+    element: <StartPage />,
     children: [
       {
         path: '',
-        element: <Navigate to="autorizate" />
+        element: <Navigate to="autorizate" />,
       },
       {
         path: 'autorizate',
@@ -53,9 +66,10 @@ const router = createBrowserRouter([
       {
         path: 'registrate',
         element: <Registration />,
-      }]
-  }
-])
+      },
+    ],
+  },
+]);
 
 root.render(
   <React.StrictMode>

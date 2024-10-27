@@ -11,18 +11,20 @@ function Logout() {
                 }
             });
             if (response.ok) {
+                localStorage.removeItem('userID');
                 sessionStorage.removeItem('userID');
-                window.location.href = '/login';
+
+                window.location.href = '/signin';
             } else {
                 console.error("Ошибка выхода");
             }
         } catch (error) {
             console.error("Ошибка:", error);
         }
-    }
+    };
 
     return (
-        <button className={styles.authoButton} onClick={logOut}>Выйти</button>
+        <button className={styles.logoutButton} onClick={logOut}>Выйти</button>
     );
 }
 
