@@ -62,6 +62,7 @@
     cursor: grab;
     transition: transform 0.1s ease;
     padding-bottom: 50px;
+    margin-top: 20px;
 }
 
 .chartCard:hover {

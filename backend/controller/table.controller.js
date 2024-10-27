@@ -286,17 +286,20 @@ class TableController {
         const client = await this.db.connect();
 
         try {
-            const columns = await client.query(`SELECT ${count}, COUNT(*) AS uniq_count
-            FROM ${table_name}
-            WHERE ${condition_column} = $1
-            GROUP BY ${count}
-            ORDER BY uniq_count DESC;
-            `, [condition_value]);
+            const query = `
+                SELECT ${count}, COUNT(*) AS uniq_count
+                FROM ${table_name}
+                WHERE ${condition_column} = $1
+                GROUP BY ${count}
+                ORDER BY uniq_count DESC;
+            `;
+
+            const columns = await client.query(query, [condition_value]);
 
             const uniqueValues = columns.rows.map(row => row[count]);
             const counts = columns.rows.map(row => row.uniq_count);
 
-            res.status(200).json({uniqueValues, counts});
+            res.status(200).json({ uniqueValues, counts });
         } catch (err) {
             console.error('Ошибка при получении столбцов', err);
             res.status(500).json({ error: 'Не удалось найти столбцы. Попробуйте позже' });
@@ -304,6 +307,7 @@ class TableController {
             client.release();
         }
     }
+
 }
 
 module.exports = TableController;

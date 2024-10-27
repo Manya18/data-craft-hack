@@ -26,7 +26,6 @@ ChartJS.register(...registerables);
 interface ChartData {
     id: string;
     type: 'bar' | 'pie' | 'histogram' | 'doughnut';
-    name: string;
     data: {
         labels: string[];
         datasets: {
@@ -35,6 +34,10 @@ interface ChartData {
             backgroundColor: string[];
         }[];
     };
+    name: string;
+    xAxisTitle: string;
+    yAxisTitle: string;
+    title: string;
 }
 type Table = {
     user_id: string;
@@ -62,41 +65,82 @@ const Dashboard: React.FC = () => {
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [tables, setTables] = useState<Table[]>([]);
     const [trigger, setTrigger] = useState('');
+    const [uniqueValues, setUniqueValues] = useState([]);
+    const [counts, setCounts] = useState([]);
+
+
 
     const [columns, setColumns] = useState<string[]>([]);
     const [isFilterModal, setIsFilterModal] = useState(false);
-    const [filters, setFilters] = useState({column: '', value: ''});
+    const [filters, setFilters] = useState({ column: '', value: '' });
     const [loading, setLoading] = useState(false);
 
     const [rows, setRows] = useState<Record<string, any>[]>([]);
 
     const user_id = sessionStorage.getItem("userID");
-
     useEffect(() => {
         const fetchData = async () => {
-          try {
-            setLoading(true);
-            const filters_str = JSON.stringify(filters);
-            console.log(filters_str)
-            if(tableName){
-                const response = await fetch(
-                    `http://localhost:8080/api/table?table=${tableName}${filters.column ? ('&filters=['+ JSON.stringify(filters) + ']'): ''}`
-                );
-                const data = await response.json();
-                setRows(data.data);
-                setColumns(Object.keys(data.data[0]));
-                console.log(columns)
-                setLoading(false);    
+            try {
+                setLoading(true);
+                const filters_str = JSON.stringify(filters);
+                console.log(filters_str)
+                if (tableName) {
+                    console.log(filters)
+                    const response = await fetch(
+                        `http://localhost:8080/api/table?table=${tableName}${filters.column ? ('&filters=[' + JSON.stringify(filters) + ']') : ''}`
+                    );
+                    const data = await response.json();
+                    setRows(data.data);
+                    setColumns(Object.keys(data.data[0]));
+                    console.log(columns)
+                    setLoading(false);
+                }
+            } catch (error) {
+                console.error("Ошибка при получении данных:", error);
+                setLoading(false);
             }
-          } catch (error) {
-            console.error("Ошибка при получении данных:", error);
-            setLoading(false);
-          }
         };
         fetchData();
-      }, [ tableName, filters]);
+    }, [tableName, filters]);
 
-      
+
+    useEffect(() => {
+        const fetchUniqueCount = async () => {
+            const requestData = {
+                table_name: tableName,
+                count: columnName,
+                condition_column: filters.column,
+                condition_value: filters.value
+            };
+
+            try {
+                const response = await fetch("http://localhost:8080/api/uniqcount", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(requestData),
+                });
+
+                if (!response.ok) {
+                    throw new Error("Ошибка при выполнении запроса");
+                }
+
+                const data = await response.json();
+                setUniqueValues(data.uniqueValues);
+                setCounts(data.counts);
+                console.log("Уникальные значения:", data.uniqueValues);
+                console.log("Количество уникальных значений:", data.counts);
+            } catch (error) {
+                console.error("Ошибка при выполнении запроса:", error);
+            }
+        };
+
+        fetchUniqueCount();
+
+    }, [tableName, columnName, filters]);
+
+
     useEffect(() => {
         const fetchTables = async () => {
             if (user_id) {
@@ -131,11 +175,11 @@ const Dashboard: React.FC = () => {
     }, []);
 
     const sampleData = {
-        labels: ['January', 'February', 'March', 'April'],
+        labels: ['Test1', 'Test2'],
         datasets: [
             {
                 label: '',
-                data: [30, 50, 40, 60],
+                data: [1, 2, 3, 4],
                 backgroundColor: ['#4caf50', '#2196f3', '#ff9800', '#f44336'],
             },
         ],
@@ -147,6 +191,9 @@ const Dashboard: React.FC = () => {
             type,
             data: sampleData,
             name: diagramName || "Без названия",
+            xAxisTitle: columnName || "Ось X",
+            yAxisTitle: 'Количество',
+            title: `${filters.column} ${filters.value}`,
         };
         setCharts((prevCharts) => [...prevCharts, newChart]);
         setIsModalOpen(false);
@@ -165,7 +212,7 @@ const Dashboard: React.FC = () => {
     }
 
 
-    const getChartOptions = (chartType: any) => {
+    const getChartOptions = (chartType: any, chart: ChartData) => {
         const rootStyles = getComputedStyle(document.documentElement);
 
         const legendDisplay = rootStyles.getPropertyValue('--legend-display').trim() === 'true';
@@ -182,15 +229,19 @@ const Dashboard: React.FC = () => {
             return {
                 responsive: true,
                 plugins: {
-                    legend: {
-                        display: legendDisplay,
-                        position: legendPosition as 'top' | 'bottom' | 'left' | 'right',
-                        labels: {
-                            color: legendColor,
-                            font: {
-                                size: legendFontSize,
-                            }
+                    title: {
+                        display: true,
+                        // text: chart.title,
+                        font: {
+                            size: 20
+                        },
+                        padding: {
+                            top: 10,
+                            bottom: 10
                         }
+                    },
+                    legend: {
+                        display: false
                     }
                 },
                 scales: {
@@ -198,7 +249,7 @@ const Dashboard: React.FC = () => {
                         display: true,
                         title: {
                             display: true,
-                            text: 'Ось X',
+                            text: chart.xAxisTitle,
                             color: axisColor,
                             font: {
                                 size: axisTitleFontSize,
@@ -215,14 +266,13 @@ const Dashboard: React.FC = () => {
                         display: true,
                         title: {
                             display: true,
-                            text: 'Ось Y',
+                            text: chart.yAxisTitle,
                             color: axisColor,
                             font: {
                                 size: axisTitleFontSize,
                             }
                         },
                         ticks: {
-                            color: axisTickColor,
                             font: {
                                 size: axisFontSize,
                             }
@@ -316,11 +366,11 @@ const Dashboard: React.FC = () => {
         let options: ChartOptions<'bar'> | ChartOptions<'pie'> | ChartOptions<'doughnut'> = {};
 
         if (chart.type === 'bar') {
-            options = getChartOptions('bar');
+            options = getChartOptions('bar', chart);
         } else if (chart.type === 'pie') {
-            options = getChartOptions('pie');
+            options = getChartOptions('pie', chart);
         } else if (chart.type === 'doughnut') {
-            options = getChartOptions('doughnut');
+            options = getChartOptions('doughnut', chart);
         } else if (chart.type === 'histogram') {
             options = getHistogramOptions();
         }
@@ -337,7 +387,7 @@ const Dashboard: React.FC = () => {
             labels: chart.data.labels,
             datasets: [
                 {
-                    label: chart.data.datasets[0].label || 'Dataset 1',
+                    label: chart.data.datasets[0].label,
                     data: chart.type === 'histogram' ? createBins(chart.data.datasets[0].data, 5) : chart.data.datasets[0].data,
                     backgroundColor: barColors,
                     borderColor: barBorderColors,
@@ -426,6 +476,9 @@ const Dashboard: React.FC = () => {
                         backgroundColor: dataset.backgroundColor,
                     })),
                 },
+                xAxisTitle: chartToCopy.xAxisTitle,
+                yAxisTitle: chartToCopy.yAxisTitle,
+                title: chartToCopy.title
             });
             toast.success('Диаграмма скопирована в буфер обмена');
         }
@@ -436,8 +489,8 @@ const Dashboard: React.FC = () => {
     const handleEditClick = (chartId: any) => {
         const chartToEdit = charts.find((chart) => chart.id === chartId);
         if (chartToEdit) {
-            setTableName('Таблицы');
-            setColumnName(chartToEdit.data.labels[0]);
+            setTableName('');
+            setColumnName('');
             setCountElements(false);
             setCurrentChartId(chartId);
             setIsEditModalOpen(true);
@@ -462,12 +515,15 @@ const Dashboard: React.FC = () => {
                     ? {
                         ...chart,
                         name: diagramName,
+                        xAxisTitle: columnName,
+                        yAxisTitle: 'Количество',
+                        title: `${filters.column} ${filters.value}`,
                         data: {
                             ...chart.data,
-                            labels: [columnName],
+                            labels: uniqueValues,
                             datasets: [{
                                 ...chart.data.datasets[0],
-                                data: countElements ? [] : chart.data.datasets[0].data,
+                                data: counts
                             }],
                         },
                     }
@@ -559,11 +615,6 @@ const Dashboard: React.FC = () => {
                     {
                         properties: {},
                         children: [
-                            new Paragraph({
-                                children: [
-                                    new TextRun(`Диаграмма ${diagramName}`),
-                                ],
-                            }),
                             new Paragraph({
                                 children: [image],
                             }),
@@ -679,7 +730,7 @@ const Dashboard: React.FC = () => {
             link.download = 'DashboardChartStyles.css';
             link.click();
 
-            window.URL.revokeObjectURL(url); 
+            window.URL.revokeObjectURL(url);
         } catch (error) {
             console.error('Ошибка при скачивании файла:', error);
         }
@@ -727,7 +778,7 @@ const Dashboard: React.FC = () => {
                 setPasteMenu({ x: e.clientX, y: e.clientY });
             }}
         >
-            <GridLayout className="layout dashboard-container" cols={12} rowHeight={40} width={1200}>
+            <GridLayout className="layout dashboard-container" cols={12} rowHeight={40} width={1200} style={{ overflowY: "hidden" }}>
                 {charts.map((chart, index) => (
                     <div
                         key={chart.id}
@@ -739,7 +790,7 @@ const Dashboard: React.FC = () => {
                         <div className={`${styles.dragHandle} drag-icon`}>
                             <DragIndicatorIcon />
                         </div>
-                        <div className="ChartName">{chart.name}</div>
+                        <div className="ChartName">{filters.column + " " + filters.value}</div>
                         <div className="chart-container">
                             <div className="chart">{renderChart(chart)}</div>
                         </div>
@@ -872,12 +923,6 @@ const Dashboard: React.FC = () => {
                     <div className={styles.widgetMenu}>
                         <button
                             className={styles.menuButton}
-                            onClick={() => addChart('histogram')}
-                        >
-                            Гистограмма
-                        </button>
-                        <button
-                            className={styles.menuButton}
                             onClick={() => addChart('bar')}
                         >
                             Столбчатая диаграмма
@@ -893,6 +938,12 @@ const Dashboard: React.FC = () => {
                             onClick={() => addChart('doughnut')}
                         >
                             Кольцевая диаграмма
+                        </button>
+                        <button
+                            className={styles.menuButton}
+                            onClick={() => addChart('histogram')}
+                        >
+                            Гистограмма
                         </button>
                     </div>
                 </div>
@@ -946,15 +997,17 @@ const Dashboard: React.FC = () => {
                         ))}
                     </select>
 
-                    {/* <label>Имя столбца:</label>
-                    <input
-                        type="text"
-                        value={columnName}
-                        onChange={(e) => setColumnName(e.target.value)}
-                        placeholder="Введите имя столбца"
-                    /> */}
-                            <FiltersModal columns={columns} table={tableName} setIsFilterModal={setIsFilterModal} setFilters={setFilters}></FiltersModal>
-
+                    <label>Имя столбца:</label>
+                    <select value={columnName} onChange={(e) => setColumnName(e.target.value)}>
+                        <option value="">Выберите столбец</option>
+                        {columns.map((column) => (
+                            <option key={column} value={column}>
+                                {column}
+                            </option>
+                        ))}
+                    </select>
+                    <FiltersModal columns={columns} table={tableName} setIsFilterModal={setIsFilterModal} setFilters={setFilters}></FiltersModal>
+                    {/* 
                     <label>
                         <input
                             type="checkbox"
@@ -962,7 +1015,7 @@ const Dashboard: React.FC = () => {
                             onChange={(e) => setCountElements(e.target.checked)}
                         />
                         Подсчитать элементы
-                    </label>
+                    </label> */}
 
                     <button className={styles.addWidgetButton} onClick={handleSaveChanges}>Сохранить изменения</button>
                 </div>

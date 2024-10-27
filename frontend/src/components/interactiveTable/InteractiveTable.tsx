@@ -3,7 +3,6 @@ import styles from "./interactiveTable.module.css";
 import FiltersModal from "../modals/filtersModal/FiltersModal";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-// import SortModal from "../modals/filtersModal/SortModal";
 
 interface EditableCell {
   rowIndex: number | null;

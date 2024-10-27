@@ -10,7 +10,7 @@ const FiltersModal = ({
   columns: string[];
   table: string;
   setIsFilterModal: (isFilterModal: boolean) => void;
-  setFilters: (filter: {column: string, value: string}) => void;
+  setFilters: (filter: { column: string, value: string }) => void;
 }) => {
   const [loading, setLoading] = useState(false);
   const [selectedColumn, setSelectedColumn] = useState("");
@@ -37,7 +37,8 @@ const FiltersModal = ({
   }, [selectedColumn]);
 
   const handleChangeFilters = (e: string) => {
-    setFilters({column: selectedColumn, value: e})
+    setFilters({ column: selectedColumn, value: e })
+    console.log('dsds', e)
   }
 
   return (
