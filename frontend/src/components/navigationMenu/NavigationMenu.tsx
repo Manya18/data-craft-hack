@@ -43,9 +43,7 @@ const NavigationMenu = () => {
         <AccountCircleOutlinedIcon fontSize="large" />
         {menuOpen && (
           <div className={styles.dropdownMenu}>
-            <div className={styles.menuItem}>
               <Logout />
-            </div>
           </div>
         )}
       </div>

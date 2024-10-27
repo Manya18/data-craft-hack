@@ -27,3 +27,7 @@
     background-color: var(--background);
     border-radius: 20px;
 }
+
+.avatar {
+    display: flex;
+}

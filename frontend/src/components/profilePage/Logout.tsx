@@ -24,7 +24,7 @@ function Logout() {
     };
 
     return (
-        <button className={styles.authoButton} onClick={logOut}>Выйти</button>
+        <button className={styles.logoutButton} onClick={logOut}>Выйти</button>
     );
 }
 
