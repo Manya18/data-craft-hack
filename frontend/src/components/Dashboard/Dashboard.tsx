@@ -19,7 +19,7 @@ import PptxGenJS from "pptxgenjs";
 import { ChartOptions } from 'chart.js';
 
 import './DashboardChartStyles.css';
-import FiltersModal from '../modals/filtersModal/FiltersModal';
+import FiltersModal from './FiltersModal';
 
 ChartJS.register(...registerables);
 
@@ -778,7 +778,9 @@ const Dashboard: React.FC = () => {
                 setPasteMenu({ x: e.clientX, y: e.clientY });
             }}
         >
-            <GridLayout className="layout dashboard-container" cols={12} rowHeight={40} width={1200} style={{ overflowY: "hidden" }}>
+            <GridLayout className="layout dashboard-container" cols={12} rowHeight={40} width={1200}
+            // style={{ overflowY: "hidden" }}
+            >
                 {charts.map((chart, index) => (
                     <div
                         key={chart.id}
@@ -790,7 +792,7 @@ const Dashboard: React.FC = () => {
                         <div className={`${styles.dragHandle} drag-icon`}>
                             <DragIndicatorIcon />
                         </div>
-                        <div className="ChartName">{filters.column + " " + filters.value}</div>
+                        <div className="ChartName">{diagramName}</div>
                         <div className="chart-container">
                             <div className="chart">{renderChart(chart)}</div>
                         </div>
