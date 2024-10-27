@@ -33,7 +33,7 @@ const processCSVFile = async (req, res, pool) => {
                     await client.query(`CREATE TABLE ${tableName} (id SERIAL PRIMARY KEY, ${keysWithTypes.join(', ')})`);
 
                     for (const row of results) {
-                        await client.query(`INSERT INTO ${tableName} (${keys.join(', ')}) VALUES(${keys.map(key => row[key] === '' ? null : `'${row[key]}'`).join(', ')})`);                    }
+                        await client.query(`INSERT INTO ${tableName} (${keys.join(', ')}) VALUES(${keys.map(key => row[key] === '' ? 'NULL' : `'${row[key]}'`).join(', ')})`);                    }
 
                     await client.query(`INSERT INTO Tables_list (user_id, table_name) VALUES ($1, $2)`, [userId, tableName]);
 
