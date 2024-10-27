@@ -155,20 +155,84 @@ class TableController {
         }
     }
 
-    async addColumn(req, res) {
-        const { table_name, column_name, column_type } = req.body;
-        const client = await this.db.connect();
+    // async updateFullName(req, res) {
+    //     const { table_name, name_column, surname_column, full_name_column } = req.body;
+    //     const client = await this.db.connect();
 
+    //     try {
+    //         const query = `
+    //             UPDATE ${table_name}
+    //             SET ${full_name_column} = CONCAT(${name_column}, ' ', ${surname_column});
+    //         `;
+
+    //         await client.query(query);
+
+    //         res.status(200).json({ message: 'Полные имена успешно обновлены' });
+    //     } catch (err) {
+    //         console.error('Ошибка при обновлении полных имен', err);
+    //         res.status(500).json({ error: 'Не удалось обновить полные имена. Попробуйте позже' });
+    //     } finally {
+    //         client.release();
+    //     }
+    // }
+    async addColumn(req, res) {
+        const { table, dataType, selectedColumn_1, selectedColumn_2, columnName, operation } = req.body;
+        const client = await this.db.connect();
+    
+        const validOperators = ['+', '-', '*', '/'];
+        if (!validOperators.includes(operation)) {
+            return res.status(400).json({ error: 'Недопустимый оператор' });
+        }
+    
         try {
-            await client.query(`ALTER TABLE ${table_name} ADD COLUMN ${column_name} ${column_type}`);
-            res.send(`Колонка ${column_name} успешно добавлена в таблицу ${table_name}`);
+
+            if(dataType==="TEXT"){
+                const query = `
+                    ALTER TABLE ${table} ADD COLUMN ${columnName} ${dataType};
+                    UPDATE ${table}
+                    SET ${columnName} = CONCAT(${selectedColumn_1}, ' ', ${selectedColumn_2});
+                `;
+                await client.query(query);
+    
+                res.status(200).json({ message: 'Значения успешно обновлены' });
+            } else{
+                const query = `
+                    ALTER TABLE ${table} ADD COLUMN ${columnName} ${dataType};
+                    UPDATE ${table}
+                    SET ${columnName} = ${selectedColumn_1} ${operation} ${selectedColumn_2};
+                `;
+                console.log(query)
+                await client.query(query);
+                res.status(200).json({ message: 'Значения успешно обновлены' });
+            }
         } catch (err) {
-            console.error('Ошибка при добавлении колонки', err);
-            res.status(500).json({ error: 'Не удалось добавить колонку. Попробуйте позже' });
+            console.error('Ошибка при обновлении значений', err);
+            res.status(500).json({ error: 'Не удалось обновить значения. Попробуйте позже' });
         } finally {
             client.release();
         }
     }
+    // async addColumn(req, res) {
+        
+    //     const { table_name, name_column, surname_column, full_name_column } = req.body;
+    //     const client = await this.db.connect();
+
+    //     try {
+    //         const query = `
+    //             UPDATE ${table_name}
+    //             SET ${full_name_column} = CONCAT(${name_column}, ' ', ${surname_column});
+    //         `;
+
+    //         await client.query(query);
+
+    //         res.status(200).json({ message: 'Колонка ${column_name} успешно добавлена' });
+    //     } catch (err) {
+    //         console.error('Ошибка при добавлении колонки', err);
+    //         res.status(500).json({ error: 'Не удалось добавить колонку. Попробуйте позже' });
+    //     } finally {
+    //         client.release();
+    //     }
+    // }
 
     async removeColumn(req, res) {
         const { table_name, column_name } = req.body;

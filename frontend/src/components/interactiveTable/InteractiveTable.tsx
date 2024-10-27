@@ -5,6 +5,7 @@ import SortModal from "../modals/sortModal/sortModal";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import TableHeadCell from "./TableHeadSell";
+import CreateColumnModal from "../modals/createColumnModal/CreateColumnModal";
 
 interface EditableCell {
   rowIndex: number | null;
@@ -259,13 +260,15 @@ const InteractiveTable = () => {
       {/* Модальное окно для фильтрации */}
       {isFilterModal && (
         <FiltersModal columns={columns} table={tableTitle} setIsFilterModal={setIsFilterModal} setFilters={setFilters}></FiltersModal>
-      )}
-      {/* 
+      )} 
+        {/* Модальное окно сортировки */}
+        {isSortModal && (
+            <SortModal columns={columns} table={tableTitle} setIsSortModal={setIsSortModal} setSortOrder={setSortOrder} setOrderBy={setOrderBy}></SortModal>
+        )}
 
-      {/* Модальное окно сортировки */}
-      {isSortModal && (
-        <SortModal columns={columns} table={tableTitle} setIsSortModal={setIsSortModal} setSortOrder={setSortOrder} setOrderBy={setOrderBy}></SortModal>
-      )}
+        {isAddColumnModal && (
+            <CreateColumnModal columns={columns} table={tableTitle} setIsAddColumnModal={setIsAddColumnModal}></CreateColumnModal>
+        )}
 
       {/* Модальное окно для скрытия строк */}
       {isHideColumnsModalOpen && (
