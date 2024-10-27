@@ -1,46 +1,67 @@
-# Getting Started with Create React App
+# data-craft-hack
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Описание
 
-## Available Scripts
+Проект позволяет строить диаграммы разных видов по данным из файлов формата .csv и .json.
 
-In the project directory, you can run:
+Этот проект состоит из серверной части и клиентского приложения. Следуйте инструкциям ниже, чтобы настроить и запустить обе части приложения.
 
-### `npm start`
+## Установка
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+### 1. Клонирование репозитория
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+```bash
+git clone https://github.com/Manya18/data-craft-hack
+cd your-repo-name
+2. Установка зависимостей
+```
 
-### `npm test`
+### Серверная часть (Backend)
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+#### Инструкции по настройке
 
-### `npm run build`
+1. **Перейдите в папку сервера**
+   ```bash
+   cd backend
+   ```
+2. **Установите дополнительные зависимости**
+   ```bash
+   npm install
+   ```
+3. **Запустите сервер**
+   ```bash
+   npm run dev
+   ```
+4. **В базу данных сделайте backup из файлa backend\datacraft.backup**
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Клиентская часть (Frontend)
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Инструкции по настройке
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+1. **Перейдите в папку клиентской части**
+   ```bash
+   cd frontend
+   ```
+2. **Установите дополнительные зависимости**
+   ```bash
+   npm install
+   ```
+3. **Запустите клиентскую часть**
+   ```bash
+   npm start
+   ```
+## Использование
+1. Откройте приложение в браузере
+2. Пройдите авторизацию или регистрацию
+3. Загрузите таблицу из файла формата .csv и .json. Данные должны иметь следующий вид. 
+Для .csv:
+ разделитель -- ;
+ первая строка должна содержать названия столбцов, остальные строки - данные
+Для .json:
+в файле должен содержаться массив объектов, где ключ - название столбца, значение - данные
 
-### `npm run eject`
+Примеры файлов лежат в папке examples в корневой папке проекта.
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+4. Для просмотра и редактирования таблицы перейдите в таблицу, нажав на ее название
+5. При необходимости вы можете добавить столбцы с формулой и строки, поменять значение ячейки, отфильтровать и отсортировать данные.
+6. Для отображения данных в виде графиков перейдите на вкладку Анализ и добавьте необходимые виджеты. Вы можете изменять их размер, перетаскивать, экспортировать в pptx, pdf, docx, а также загружать CSS-файл для изменения стилей. Скачать шаблон CSS-файла вы можете на той же вкладке.
