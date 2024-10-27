@@ -269,9 +269,41 @@ class TableController {
         }
     }
 
-    // async getNumberColumns(req, res) {
-    //     const {table_name}
+    // async getColumnsType(req, res) {
+    //     const {table_name} = req.body;
+    //     const client = await this.db.connect();
+
+    //     try {
+    //         const columnsTypes = client.query(`SELECT Пространство, COUNT(*) AS columns
+    //         FROM _11samara_tasks__1
+    //         GROUP BY Пространство
+    //         ORDER BY columns DESC;`)
+    //     }
     // }
+
+    async getUniqueCount(req, res) {
+        const { table_name, count, condition_column, condition_value } = req.body;
+        const client = await this.db.connect();
+
+        try {
+            const columns = await client.query(`SELECT ${count}, COUNT(*) AS uniq_count
+            FROM ${table_name}
+            WHERE ${condition_column} = $1
+            GROUP BY ${count}
+            ORDER BY uniq_count DESC;
+            `, [condition_value]);
+
+            const uniqueValues = columns.rows.map(row => row[count]);
+            const counts = columns.rows.map(row => row.uniq_count);
+
+            res.status(200).json({uniqueValues, counts});
+        } catch (err) {
+            console.error('Ошибка при получении столбцов', err);
+            res.status(500).json({ error: 'Не удалось найти столбцы. Попробуйте позже' });
+        } finally {
+            client.release();
+        }
+    }
 }
 
 module.exports = TableController;
