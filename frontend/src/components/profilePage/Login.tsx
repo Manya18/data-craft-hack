@@ -42,7 +42,7 @@ function Login() {
                     setIsRedirecting(true);
 
                     toast.success("Вход выполнен успешно!", {
-                        onClose: () => navigate('/tables') 
+                        onClose: () => navigate('/home') 
                     });
                 }
             } catch (error) {

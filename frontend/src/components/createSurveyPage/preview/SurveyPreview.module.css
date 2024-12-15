@@ -1,0 +1,68 @@
+.preview {
+  padding: 20px;
+  border-radius: 10px;
+  background-color: #f9f9f9;
+}
+
+.titleContainer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: bold;
+  font-size: 24px;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.descriptionContainer {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.questionBlock {
+  margin-bottom: 20px;
+  padding: 20px;
+}
+
+.questionNumber {
+  padding-bottom: 10px;
+}
+
+.questionText {
+  font-weight: bold;
+  padding-bottom: 10px;
+}
+
+.npsContainer {
+  margin-top: 10px;
+}
+
+.rangeContainer {
+  margin-top: 20px;
+}
+
+.npsValue {
+  font-size: 18px;
+  margin-top: 5px;
+}
+
+.buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.button:hover {
+  opacity: 0.8;
+}

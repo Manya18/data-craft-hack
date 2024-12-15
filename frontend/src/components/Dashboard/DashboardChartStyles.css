@@ -36,7 +36,7 @@
 /* Стили для контейнера дашборда */
 .dashboard-container {
     position: relative;
-    padding-top: 50px;
+    /* padding-top: 50px; */
 }
 
 /* Стили для фона при перемещении дашборда */

@@ -1,70 +1,74 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
-import Dashboard from './components/Dashboard/Dashboard';
-import App from './App';
-import TablesList from './components/tablesList/TablesList';
-import Registration from './components/profilePage/Registration';
-import Login from './components/profilePage/Login';
-import StartPage from './components/profilePage/StartPage';
-import InteractiveTable from './components/interactiveTable/InteractiveTable';
-import PrivateRoute from './PrivateRoute';
-
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+import {
+  createBrowserRouter,
+  Navigate,
+  RouterProvider,
+} from "react-router-dom";
+import Dashboard from "./components/Dashboard/Dashboard";
+import App from "./App";
+import TablesList from "./components/tablesList/TablesList";
+import Registration from "./components/profilePage/Registration";
+import Login from "./components/profilePage/Login";
+import StartPage from "./components/profilePage/StartPage";
+import PrivateRoute from "./PrivateRoute";
+import HomePage from "./components/homePage/HomePage";
+import SurveyCreatorPage from "./components/createSurveyPage/createSurveyPage";
 
 const root = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement
+  document.getElementById("root") as HTMLElement
 );
 
 const router = createBrowserRouter([
   {
-    path: '/',
+    path: "/",
     element: <App />,
     children: [
       {
-        path: '',
-        element: <Navigate to="tables" />,
+        path: "",
+        element: <Navigate to="home" />,
       },
       {
-        path: 'tables',
+        path: "home",
         element: (
           <PrivateRoute>
-            <TablesList />
+            <HomePage />
           </PrivateRoute>
         ),
       },
       {
-        path: 'table/:id',
+        path: "survey/:surveyId",
         element: (
           <PrivateRoute>
-            <InteractiveTable />
+            <SurveyCreatorPage />
           </PrivateRoute>
         ),
       },
-      {
-        path: 'analyse',
-        element: (
-          <PrivateRoute>
-            <Dashboard />
-          </PrivateRoute>
-        ),
-      },
+      // {
+      //   path: 'analyse',
+      //   element: (
+      //     <PrivateRoute>
+      //       <Dashboard />
+      //     </PrivateRoute>
+      //   ),
+      // },
     ],
   },
   {
-    path: '/signin',
+    path: "/signin",
     element: <StartPage />,
     children: [
       {
-        path: '',
+        path: "",
         element: <Navigate to="autorizate" />,
       },
       {
-        path: 'autorizate',
+        path: "autorizate",
         element: <Login />,
       },
       {
-        path: 'registrate',
+        path: "registrate",
         element: <Registration />,
       },
     ],

@@ -85,30 +85,13 @@ label {
     padding: 10px;
 }
 
-input {
-    font-family: var(--secondaryFont);
-    font-size: 18px;
-    padding: 10px;
-    border-radius: 4px;
-}
-
-input:focus {
-    outline: 2px solid var(--accent);
-}
-
 .logoutButton {
     color: #000;
     font-size: 15px;
-    background-color: white;
-    border: 0px;
-    padding: 10px;
-    border-radius: 10px;
-    position: sticky;
-    z-index: 2000;
 }
 
 .logoutButton:hover {
-    background-color: #ccc;
+    opacity: 0.8;
 }
 
 .info {

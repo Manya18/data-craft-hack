@@ -1,0 +1,51 @@
+.questions {
+  margin-top: 20px;
+}
+
+.questionBlock {
+  display: flex;
+  flex-direction: column;
+  position: relative; 
+  margin: 10px;
+}
+
+.icontButton {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  background-color: #f9f9f9;
+  position: relative;
+  cursor: pointer;
+}
+
+.icontButton svg {
+  font-size: 15px;
+}
+
+.questionBlock {
+  display: flex;
+  gap: 10px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  background-color: #f9f9f9;
+  padding: 20px;
+}
+
+.icons {
+  display: flex;
+  gap: 10px;
+}
+
+.title {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.icons {
+  display: flex;
+  gap: 8px;
+  position: absolute; 
+  top: 8px; 
+  right: 8px; 
+}

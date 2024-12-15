@@ -1,0 +1,61 @@
+.buttonList {
+  padding: 0 20px;
+}
+
+.creator {
+  width: 60%;
+  padding: 20px;
+}
+
+.preview {
+  width: 40%;
+  padding: 20px;
+  border-left: 1px solid #ccc;
+  overflow-y: auto;
+}
+
+.SurveyInfo {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.SurveyBlock {
+  display: inline-grid;
+  gap: 5px;
+}
+
+.SurveyTitle {
+  font-size: 18px;
+}
+
+.SurveyButtons {
+  display: flex;
+  gap: 50px;
+  padding: 0 20px 20px;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 20px;
+}
+
+.mainContent {
+  display: flex;
+  justify-content: space-between;
+  flex: 1;
+}
+
+.leftSide {
+  flex: 0 1 65%;
+  padding-right: 20px;
+}
+
+.rightSide {
+  flex: 0 1 30%;
+  padding-left: 20px;
+  border-left: 1px solid #ccc;
+  padding-top: 10px;
+}

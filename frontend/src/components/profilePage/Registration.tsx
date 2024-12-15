@@ -48,7 +48,7 @@ function Auth() {
             sessionStorage.setItem('userID', `${res.id}`);
             toast.success("Регистрация успешна!");
 
-            navigate('/tables');
+            navigate('/home');
         } catch (e) {
             console.error(e);
             setError(true);

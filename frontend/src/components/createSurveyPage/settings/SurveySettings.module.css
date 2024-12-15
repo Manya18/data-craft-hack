@@ -1,0 +1,52 @@
+.settings {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-bottom: 20px;
+}
+
+.fields {
+  display: flex;
+  gap: 35px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  font-size: 16px;
+  margin-bottom: 5px;
+}
+
+.colorPickerContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.colorCircle {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  margin-right: 10px;
+  border: 1px solid #ccc;
+}
+
+.colorPickerWrapper {
+  position: absolute;
+  z-index: 1000;
+  top: 40px;
+}
+
+.colorPickerContainer {
+  position: relative;
+}
+
+.title {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+}

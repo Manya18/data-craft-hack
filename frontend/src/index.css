@@ -24,7 +24,6 @@ html,
 body {
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
 }
 
 code {
@@ -42,10 +41,6 @@ button {
   background-color: unset;
   color: unset;
   border: none;
-}
-
-input:focus {
-  outline: 2px solid var(--opacity-accent);
 }
 
 table {
@@ -96,27 +91,23 @@ option:hover {
   --background: #ffffff;
   --border-color: #D9D9D9;
   --text-primary: #0D0D0D;
-  --accent: rgba(67, 78, 175, 1);
+  --accent: #0D0097;
   --text-accent: #ffffff;
 }
 
 .primary-button {
   background-color: var(--accent);
   color: var(--text-accent);
-  border-radius: 5px;
+  border-radius: 10px;
   padding: 8px 25px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   width: fit-content;
   cursor: pointer;
-
-  &:hover {
-    background-color: rgba(67, 78, 175, 0.5);
-  }
 }
 
 .primary-button:hover {
-  opacity: rgba(67, 78, 175, 0.5);
+  opacity: 0.7;
   cursor: pointer;
 }
 
@@ -129,4 +120,29 @@ option:hover {
   font-size: 14px;
   font-weight: 600;
   width: fit-content;
+}
+
+input {
+  width: 100%; 
+  padding: 10px; 
+  border: 1px solid #ccc; 
+  border-radius: 5px;
+  font-size: 16px; 
+  box-sizing: border-box; 
+}
+
+input:focus {
+  border-color: var(--accent);
+  outline: none; 
+}
+
+
+input[type="text"] {
+  width: 500px;
+  display: inline-block;
+}
+
+input[type="number"] {
+  width: 60px;
+  display: inline-block;
 }
