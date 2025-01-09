@@ -1,23 +1,19 @@
-import React, { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom"; 
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import SurveySettings from "./settings/SurveySettings";
 import SurveyCustomization from "./customization/SurveyCustomization";
 import SurveyQuestions from "./questionList/QuestionList";
 import SurveyPreview from "./preview/SurveyPreview";
 import styles from "./createSurveyPage.module.css";
 import { Divider } from "@mui/material";
+import { Question } from "../../types/types";
 
-interface Question {
-  id: number;
-  questionText: string;
-  questionType: string;
-  isRequired: boolean;
-  options: string[];
-}
+const { v4: uuidv4 } = require("uuid");
 
 const SurveyCreatorPage: React.FC = () => {
   const { surveyId } = useParams<{ surveyId: string }>();
   const navigate = useNavigate();
+  const [surveyType, setSurveyType] = useState<string>("");
 
   const [surveyTitle, setSurveyTitle] = useState<string>("Опрос");
   const [surveyDescription, setSurveyDescription] = useState<string>(
@@ -51,13 +47,16 @@ const SurveyCreatorPage: React.FC = () => {
 
   const saveSurvey = async (surveyId: string, surveyData: object) => {
     try {
-      const response = await fetch(`/api/surveys/${surveyId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(surveyData),
-      });
+      const response = await fetch(
+        `http://localhost:8080/api/surveys/${surveyId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(surveyData),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Ошибка при сохранении данных опроса.");
@@ -66,6 +65,64 @@ const SurveyCreatorPage: React.FC = () => {
       return await response.json();
     } catch (error) {
       console.error("Ошибка в API saveSurvey:", error);
+      throw error;
+    }
+  };
+
+  const saveQuestions = async (surveyId: string, questions: Question[]) => {
+    try {
+      const newQuestions = questions.filter((q) => q.isNew); // Новые вопросы
+      const existingQuestions = questions.filter((q) => !q.isNew); // Существующие вопросы
+
+      // Сохранение новых вопросов
+      if (newQuestions.length > 0) {
+        const response = await fetch(
+          `http://localhost:8080/api/surveys/${surveyId}/question`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(newQuestions),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Ошибка при создании новых вопросов.");
+        }
+
+        // Обновляем состояние после успешного сохранения
+        const savedQuestions = await response.json();
+        setQuestions((prev) =>
+          prev.map((q) =>
+            newQuestions.some((nq) => nq.id === q.id)
+              ? { ...q, isNew: false }
+              : q
+          )
+        );
+        setQuestions((prev) => [...prev, ...savedQuestions]);
+        console.log("ds", questions);
+      }
+
+      // Обновление существующих вопросов
+      for (const question of existingQuestions) {
+        const response = await fetch(
+          `http://localhost:8080/api/surveys/question/${question.id}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(question),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Ошибка при обновлении вопроса с ID: ${question.id}`);
+        }
+      }
+    } catch (error) {
+      console.error("Ошибка в API saveQuestions:", error);
       throw error;
     }
   };
@@ -91,18 +148,77 @@ const SurveyCreatorPage: React.FC = () => {
 
     try {
       if (!surveyId) {
-        alert("Ошибка: ID опроса не найден в URL.");
+        console.error("Ошибка: ID опроса не найден в URL.");
         return;
       }
 
       const savedSurvey = await saveSurvey(surveyId, surveyData);
-      alert("Опрос успешно сохранен!");
       console.log("Сохраненные данные:", savedSurvey);
+      await saveQuestions(surveyId, questions);
+      console.log("Сохранённые вопросы:", questions);
     } catch (error) {
-      alert("Ошибка при сохранении опроса. Попробуйте снова.");
       console.error("Ошибка:", error);
     }
   };
+
+  const initializeSurveyData = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:8080/api/survey/${surveyId}`
+      );
+  
+      if (!response.ok) {
+        throw new Error(`Ошибка: ${response.statusText}`);
+      }
+  
+      const surveyData = await response.json();
+      console.log("Данные опроса:", surveyData);
+  
+      setSurveyTitle(surveyData.title || "Опрос");
+      setSurveyType(surveyData.type || "");
+      setSurveyDescription(surveyData.description || "Описание вашего опроса");
+  
+      const settings = surveyData.settings || {};
+      setQuestionsPerPage(settings.questionsPerPage || 3);
+      setFontSize(settings.fontSize || 16);
+      setTextColor(settings.textColor || "#000000");
+      setBackgroundColor(settings.backgroundColor || "#ffffff");
+      setButtonColor(settings.buttonColor || "#f0f0f0");
+      setTitleFontSize(settings.titleFontSize || 24);
+      setDescriptionFontSize(settings.descriptionFontSize || 18);
+      setTitleBackgroundColor(settings.titleBackgroundColor || "#f0f0f0");
+      setDescriptionBackgroundColor(settings.descriptionBackgroundColor || "#ffffff");
+      setLogo(settings.logo || "");
+      setBackgroundImage(settings.backgroundImage || "");
+  
+    } catch (error) {
+      console.error("Ошибка при инициализации данных опроса:", error);
+    }
+  };
+
+  const fetchQuestions = async () => {
+    if (!surveyId) return;
+    try {
+      const response = await fetch(
+        `http://localhost:8080/api/surveys/${surveyId}/questions`
+      );
+      if (!response.ok) {
+        throw new Error(`Ошибка при получении вопросов: ${response.status}`);
+      }
+      const data = await response.json();
+      const formattedQuestions = data.map((q: any) => ({ ...q, isNew: false }));
+      setQuestions(formattedQuestions);
+    } catch (error) {
+      console.error("Ошибка при загрузке вопросов:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (surveyId) {
+      initializeSurveyData();
+      fetchQuestions();
+    }
+  }, [surveyId]);
 
   return (
     <div>
@@ -110,7 +226,7 @@ const SurveyCreatorPage: React.FC = () => {
         <button className="primary-button" onClick={() => navigate("/home")}>
           На главную
         </button>
-        <button className="save-button" onClick={handleSaveSurvey}>
+        <button className="primary-button" onClick={handleSaveSurvey}>
           Сохранить
         </button>
       </div>
@@ -169,11 +285,12 @@ const SurveyCreatorPage: React.FC = () => {
                 setQuestions([
                   ...questions,
                   {
-                    id: Date.now(),
+                    id: uuidv4(),
                     questionText: "",
-                    questionType: "nps",
+                    questionType: surveyType,
                     isRequired: false,
                     options: [""],
+                    isNew: true,
                   },
                 ])
               }
@@ -185,10 +302,15 @@ const SurveyCreatorPage: React.FC = () => {
                 if (questionToCopy) {
                   setQuestions((prev) => [
                     ...prev,
-                    { ...questionToCopy, id: Date.now() },
+                    { ...questionToCopy, id: uuidv4(), isNew: true },
                   ]);
                 }
               }}
+              handleEditQuestion={(id, updatedData) =>
+                setQuestions((prev) =>
+                  prev.map((q) => (q.id === id ? { ...q, ...updatedData } : q))
+                )
+              }
             />
           </div>
 

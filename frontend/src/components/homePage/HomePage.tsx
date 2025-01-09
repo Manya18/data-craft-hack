@@ -1,22 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./HomePage.module.css";
 import { FiEdit } from "react-icons/fi";
 import { MdContentCopy, MdDeleteOutline } from "react-icons/md";
-import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 
 interface Survey {
-  id: number;
-  title: string;
-  type: string;
+  survey_id: number;
+  survey_title: string;
+  survey_type: string;
+  survey_description: string;
+  survey_settings: any;
 }
-
-const recentSurveys: Survey[] = [
-  { id: 1, title: "Опрос удовлетворенности", type: "NPS" },
-  { id: 2, title: "Обратная связь", type: "Feedback" },
-  { id: 3, title: "Викторина по продукту", type: "Survey" },
-];
 
 const surveyTypes = [
   {
@@ -47,29 +42,59 @@ const surveyTypes = [
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
-  const userId = sessionStorage.getItem("userId");
-  console.log(userId);
+  const userId = sessionStorage.getItem("userID");
+  const [recentSurveys, setRecentSurveys] = useState<Survey[]>([]);
+
   const handleCreateSurvey = async (type: string) => {
     try {
       const surveyId = uuidv4();
-
       const surveyData = {
         id: surveyId,
         user_id: userId,
         type,
       };
 
-      const response = await axios.post(
-        "http://localhost:8080/api/surveys",
-        surveyData
-      );
+      const response = await fetch("http://localhost:8080/api/surveys", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(surveyData),
+      });
 
-      console.log("Опрос успешно создан:", response.data);
+      if (!response.ok) {
+        throw new Error(`Ошибка при создании опроса: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log("Опрос успешно создан:", data);
       navigate(`/survey/${surveyId}`);
     } catch (error) {
       console.error("Ошибка при создании опроса:", error);
     }
   };
+
+  const fetchRecentSurveys = async () => {
+    if (!userId) return;
+    try {
+      const response = await fetch(
+        `http://localhost:8080/api/surveys/${userId}`
+      );
+
+      if (!response.ok) {
+        throw new Error(`Ошибка при получении опросов: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      setRecentSurveys(data);
+    } catch (error) {
+      console.error("Ошибка при загрузке опросов:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchRecentSurveys();
+  }, [userId]);
 
   const handleEditSurvey = (id: number) => {
     navigate(`/survey/${id}`);
@@ -118,35 +143,38 @@ const HomePage: React.FC = () => {
         {recentSurveys.length > 0 ? (
           <div className={styles.recentList}>
             {recentSurveys.map((survey) => (
-              <div className={styles.recentSurveys} key={survey.id}>
-                <div className={styles.recentSurveysName}> {survey.title}</div>
+              <div className={styles.recentSurveys} key={survey.survey_id}>
+                <div className={styles.recentSurveysName}>
+                  {" "}
+                  {survey.survey_title}
+                </div>
                 <button
                   className={styles.recentButton}
-                  onClick={() => handleEditSurvey(survey.id)}
+                  onClick={() => handleEditSurvey(survey.survey_id)}
                 >
                   <FiEdit />
                 </button>
                 <button
                   className={styles.recentButton}
-                  onClick={() => handleCopySurvey(survey.id)}
+                  onClick={() => handleCopySurvey(survey.survey_id)}
                 >
                   <MdContentCopy />
                 </button>
                 <button
                   className={styles.recentButton}
-                  onClick={() => handleDeleteSurvey(survey.id)}
+                  onClick={() => handleDeleteSurvey(survey.survey_id)}
                 >
                   <MdDeleteOutline />
                 </button>
                 <button
                   className="primary-button"
-                  onClick={() => handlePreviewSurvey(survey.id)}
+                  onClick={() => handlePreviewSurvey(survey.survey_id)}
                 >
                   Предпросмотр
                 </button>
                 <button
                   className={styles.recentButton}
-                  onClick={() => handleViewResults(survey.id)}
+                  onClick={() => handleViewResults(survey.survey_id)}
                 >
                   Результаты
                 </button>
