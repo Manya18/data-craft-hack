@@ -15,6 +15,7 @@ import StartPage from "./components/profilePage/StartPage";
 import PrivateRoute from "./PrivateRoute";
 import HomePage from "./components/homePage/HomePage";
 import SurveyCreatorPage from "./components/createSurveyPage/createSurveyPage";
+import SurveyPreviewWrapper from "./components/createSurveyPage/preview/SurveyPreviewWrapper";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -45,14 +46,14 @@ const router = createBrowserRouter([
           </PrivateRoute>
         ),
       },
-      // {
-      //   path: 'analyse',
-      //   element: (
-      //     <PrivateRoute>
-      //       <Dashboard />
-      //     </PrivateRoute>
-      //   ),
-      // },
+      {
+        path: "surveyPreview/:surveyId",
+        element: (
+          <PrivateRoute>
+            <SurveyPreviewWrapper />
+          </PrivateRoute>
+        ),
+      },
     ],
   },
   {

@@ -12,7 +12,7 @@ module.exports = (surveyController) => {
 
   router.get("/surveys/:id", (req, res) => 
     surveyController.getSurveysByUserId(req, res));
-  
+
   router.get("/survey/:id", (req, res) => 
     surveyController.getSurvey(req, res));
 
@@ -28,5 +28,12 @@ module.exports = (surveyController) => {
     surveyController.getQuestionsBySurveyId(req, res)
   );
 
+  router.delete("/survey/:surveyId", (req, res) => {
+    surveyController.deleteSurvey(req, res);
+  });
+
+  router.post("/survey/:surveyId/duplicate", (req, res) => {
+    surveyController.duplicateSurvey(req, res);
+  });
   return router;
 };

@@ -100,16 +100,57 @@ const HomePage: React.FC = () => {
     navigate(`/survey/${id}`);
   };
 
-  const handleCopySurvey = (id: number) => {
-    console.log(`Копировать опрос с ID: ${id}`);
+  const handleCopySurvey = async (id: number) => {
+    try {
+      const newSurveyId = uuidv4();
+
+      const response = await fetch(
+        `http://localhost:8080/api/survey/${id}/duplicate`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ new_id: newSurveyId }),
+        }
+      );
+
+      if (response.ok) {
+        const newSurvey = await response.json();
+        console.log(
+          `Опрос с ID ${id} успешно дублирован. Новый опрос:`,
+          newSurvey
+        );
+
+        fetchRecentSurveys();
+      } else {
+        console.error(`Ошибка при дублировании опроса с ID ${id}`);
+      }
+    } catch (error) {
+      console.error("Ошибка при выполнении запроса на дублирование:", error);
+    }
   };
 
-  const handleDeleteSurvey = (id: number) => {
-    console.log(`Удалить опрос с ID: ${id}`);
+  const handleDeleteSurvey = async (id: number) => {
+    try {
+      const response = await fetch(`http://localhost:8080/api/survey/${id}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        console.log(`Опрос с ID ${id} успешно удален.`);
+        fetchRecentSurveys();
+      } else {
+        console.error(`Ошибка при удалении опроса с ID ${id}`);
+      }
+    } catch (error) {
+      console.error("Ошибка при выполнении запроса на удаление:", error);
+    }
   };
 
   const handlePreviewSurvey = (id: number) => {
     console.log(`Предпросмотр опроса с ID: ${id}`);
+    navigate(`/surveyPreview/${id}`);
   };
 
   const handleViewResults = (id: number) => {
@@ -126,8 +167,7 @@ const HomePage: React.FC = () => {
             <div
               key={type.id}
               className={styles.surveyType}
-              onClick={() => handleCreateSurvey(type.type)}
-            >
+              onClick={() => handleCreateSurvey(type.type)}>
               <div className={styles.surveyTypeContent} />
               <div className={styles.surveyTypeName} title={type.description}>
                 {type.name}
@@ -150,32 +190,27 @@ const HomePage: React.FC = () => {
                 </div>
                 <button
                   className={styles.recentButton}
-                  onClick={() => handleEditSurvey(survey.survey_id)}
-                >
+                  onClick={() => handleEditSurvey(survey.survey_id)}>
                   <FiEdit />
                 </button>
                 <button
                   className={styles.recentButton}
-                  onClick={() => handleCopySurvey(survey.survey_id)}
-                >
+                  onClick={() => handleCopySurvey(survey.survey_id)}>
                   <MdContentCopy />
                 </button>
                 <button
                   className={styles.recentButton}
-                  onClick={() => handleDeleteSurvey(survey.survey_id)}
-                >
+                  onClick={() => handleDeleteSurvey(survey.survey_id)}>
                   <MdDeleteOutline />
                 </button>
                 <button
                   className="primary-button"
-                  onClick={() => handlePreviewSurvey(survey.survey_id)}
-                >
+                  onClick={() => handlePreviewSurvey(survey.survey_id)}>
                   Предпросмотр
                 </button>
                 <button
                   className={styles.recentButton}
-                  onClick={() => handleViewResults(survey.survey_id)}
-                >
+                  onClick={() => handleViewResults(survey.survey_id)}>
                   Результаты
                 </button>
               </div>

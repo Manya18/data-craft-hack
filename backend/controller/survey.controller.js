@@ -1,4 +1,5 @@
 const bcrypt = require("bcrypt");
+const { v4: uuidv4 } = require("uuid");
 
 class SurveyController {
   constructor(db) {
@@ -79,7 +80,7 @@ class SurveyController {
             WHERE 
                 p.id = $1
           `,
-        [id] 
+        [id]
       );
 
       res.status(200).json(result.rows);
@@ -148,7 +149,7 @@ class SurveyController {
           ]
         );
 
-        const savedQuestion = questionResult.rows[0]; 
+        const savedQuestion = questionResult.rows[0];
         console.log("Question saved:", savedQuestion.id);
 
         if (options && options.length > 0) {
@@ -165,7 +166,7 @@ class SurveyController {
             );
             savedOptions.push(optionResult.rows[0]);
           }
-          savedQuestion.options = savedOptions; 
+          savedQuestion.options = savedOptions;
         }
 
         savedQuestions.push(savedQuestion);
@@ -279,6 +280,123 @@ class SurveyController {
     } catch (err) {
       console.error("Ошибка при получении вопросов:", err);
       res.status(500).json({ message: "Ошибка при получении вопросов" });
+    } finally {
+      client.release();
+    }
+  }
+
+  // Удаление опроса
+  async deleteSurvey(req, res) {
+    const { surveyId } = req.params;
+    const client = await this.db.connect();
+
+    try {
+      await client.query(
+        `DELETE FROM answeroption WHERE question_id IN (SELECT id FROM question WHERE survey_id = $1)`,
+        [surveyId]
+      );
+      await client.query(`DELETE FROM question WHERE survey_id = $1`, [
+        surveyId,
+      ]);
+
+      const result = await client.query(
+        `DELETE FROM Survey WHERE id = $1 RETURNING *`,
+        [surveyId]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: "Опрос не найден" });
+      }
+
+      res.status(200).json({ message: "Опрос успешно удален" });
+    } catch (err) {
+      console.error("Ошибка при удалении опроса:", err);
+      res.status(500).json({ message: "Ошибка при удалении опроса" });
+    } finally {
+      client.release();
+    }
+  }
+
+  // Создание копии опроса
+  async duplicateSurvey(req, res) {
+    const { surveyId } = req.params; 
+    const client = await this.db.connect();
+
+    try {
+      await client.query("BEGIN");
+      const surveyResult = await client.query(
+        `SELECT * FROM Survey WHERE id = $1`,
+        [surveyId]
+      );
+
+      if (surveyResult.rows.length === 0) {
+        return res.status(404).json({ message: "Опрос не найден" });
+      }
+
+      const originalSurvey = surveyResult.rows[0];
+
+      const newSurveyId = uuidv4();
+
+      const surveyCopyResult = await client.query(
+        `INSERT INTO Survey (id, user_id, title, type, settings) 
+         VALUES ($1, $2, $3, $4, $5) 
+         RETURNING *`,
+        [
+          newSurveyId,
+          originalSurvey.user_id,
+          `${originalSurvey.title} (Копия)`,
+          originalSurvey.type,
+          originalSurvey.settings,
+        ]
+      );
+
+      const newSurvey = surveyCopyResult.rows[0];
+
+      const questionsResult = await client.query(
+        `SELECT * FROM question WHERE survey_id = $1`,
+        [surveyId]
+      );
+
+      await Promise.all(
+        questionsResult.rows.map(async (question) => {
+          const newQuestionId = `copy_${uuidv4()}`;
+          await client.query(
+            `INSERT INTO question (id, survey_id, text, type, required, answer_type, feature_description) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            [
+              newQuestionId,
+              newSurveyId,
+              question.text,
+              question.type,
+              question.required,
+              question.answer_type,
+              question.feature_description,
+            ]
+          );
+
+          const optionsResult = await client.query(
+            `SELECT * FROM answeroption WHERE question_id = $1`,
+            [question.id]
+          );
+
+          await Promise.all(
+            optionsResult.rows.map(async (option) => {
+              await client.query(
+                `INSERT INTO answeroption (question_id, text, is_correct) 
+                 VALUES ($1, $2, $3)`,
+                [newQuestionId, option.text, option.is_correct]
+              );
+            })
+          );
+        })
+      );
+
+      await client.query("COMMIT"); 
+      res.status(201).json(newSurvey);
+    } catch (err) {
+      await client.query("ROLLBACK");
+      console.error("Ошибка при создании копии опроса:", err);
+      res.status(500).json({ message: "Ошибка при создании копии опроса" });
     } finally {
       client.release();
     }
